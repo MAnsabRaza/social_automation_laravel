@@ -397,7 +397,13 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+    @if (isset($modules))
+        @foreach ($modules as $module)
+            <script src="{{ asset('asset/app_module/' . $module) }}"></script>
+        @endforeach
+    @endif
+    {{-- custom.js --}}
+    <script src="{{ asset('asset/app_module/custom.js') }}"></script>
     <script>
         // Profile Dropdown
         $('#profileToggle').on('click', function (e) {

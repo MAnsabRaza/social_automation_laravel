@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SocialAccountsController;
 use Illuminate\Support\Facades\Route;
 //Login
 Route::get('/',[AuthController::class,'showLogin'])->name('showLogin');
@@ -21,5 +22,8 @@ Route::post('/checkLogin',[AuthController::class,'checkLogin'])->name('checkLogi
 //Home
 Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    //Social Account
+    Route::get('/social-account', [SocialAccountsController::class, 'index'])->name('social-account');
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
