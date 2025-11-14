@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,6 +21,7 @@
       position: relative;
       margin-bottom: 1.5rem;
     }
+
     .input-group input {
       width: 100%;
       padding: 1rem 1rem 0.5rem;
@@ -30,10 +32,12 @@
       transition: all 0.3s ease;
       background: transparent;
     }
+
     .input-group input:focus {
       border-color: #1d4ed8;
       box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
     }
+
     .input-group label {
       position: absolute;
       top: 1rem;
@@ -44,8 +48,9 @@
       transition: all 0.3s ease;
       transform-origin: 0 0;
     }
-    .input-group input:focus ~ label,
-    .input-group input:not(:placeholder-shown) ~ label {
+
+    .input-group input:focus~label,
+    .input-group input:not(:placeholder-shown)~label {
       top: 0.5rem;
       left: 1rem;
       font-size: 0.75rem;
@@ -59,11 +64,12 @@
     }
   </style>
 </head>
+
 <body class="bg-gray-50">
   <div class="flex min-h-screen">
     <!-- Left Side - Full Background Image -->
     <div class="hidden lg:block w-full lg:w-1/2 bg-cover bg-center bg-no-repeat relative"
-         style="background-image: url('{{ asset('assets/images/home.jpg') }}');">
+      style="background-image: url('{{ asset('assets/images/home.jpg') }}');">
       <div class="absolute inset-0 bg-gradient-to-br from-black/70 to-black/40"></div>
       <div class="relative z-10 flex flex-col items-center justify-center h-full text-white px-12">
         <h1 class="text-5xl font-bold mb-6 leading-tight">Welcome to Your Future</h1>
@@ -77,13 +83,14 @@
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16">
       <div class="w-full max-w-md">
         <!-- Back Button -->
-        <div class="flex items-center gap-2 cursor-pointer mb-8" id="backBtn">
+        <a href="{{ route('showLogin') }}" class="flex items-center gap-2 cursor-pointer mb-8">
           <span class="text-2xl text-gray-600">←</span>
           <p class="text-lg text-gray-700 font-medium">Back</p>
-        </div>
+        </a>
 
         <!-- Title -->
-        <h2 class="text-5xl font-extrabold text-center bg-gradient-to-r from-blue-900 to-indigo-600 bg-clip-text text-transparent">
+        <h2
+          class="text-5xl font-extrabold text-center bg-gradient-to-r from-blue-900 to-indigo-600 bg-clip-text text-transparent">
           SIGN UP
         </h2>
         <p class="text-center text-gray-600 mt-3 text-lg">Create your account to get started!</p>
@@ -95,7 +102,7 @@
           <!-- Username -->
           <div class="input-group">
             <input type="text" id="name" name="name" placeholder=" " required />
-            <label for="name">Username</label>
+            <label for="name">Name</label>
           </div>
 
           <!-- Email -->
@@ -108,15 +115,13 @@
           <div class="input-group relative">
             <input type="password" id="password" name="password" placeholder=" " required />
             <label for="password">Password</label>
-            <span id="togglePassword"
-                  class="absolute right-3 top-5 text-gray-500 cursor-pointer text-lg">
+            <span id="togglePassword" class="absolute right-3 top-5 text-gray-500 cursor-pointer text-lg">
               <i class="fa-solid fa-eye" id="eyeIcon"></i>
             </span>
           </div>
 
           <!-- Submit Button -->
-          <button type="submit"
-                  class="w-full bg-gradient-to-r from-blue-900 to-indigo-700 text-white py-4 rounded-xl font-semibold text-lg 
+          <button type="submit" class="w-full bg-gradient-to-r from-blue-900 to-indigo-700 text-white py-4 rounded-xl font-semibold text-lg 
                          hover:from-blue-800 hover:to-indigo-600 transform transition-all duration-200 
                          hover:scale-[1.02] shadow-lg hover:shadow-xl">
             Create Account
@@ -206,4 +211,5 @@
     @endif
   </script>
 </body>
+
 </html>

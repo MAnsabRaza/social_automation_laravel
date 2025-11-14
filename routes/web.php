@@ -17,9 +17,9 @@ Route::get('/fetch/{id}',[AuthController::class,'fetch']);
 
 //check login
 Route::post('/checkLogin',[AuthController::class,'checkLogin'])->name('checkLogin');
-//Logout
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 //Home
 Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
