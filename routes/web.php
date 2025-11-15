@@ -24,7 +24,11 @@ Route::post('/checkLogin', [AuthController::class, 'checkLogin'])->name('checkLo
 Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     //Social Account
-    Route::get('/social-account', [SocialAccountsController::class, 'index'])->name('social-account');
+    Route::get('/socialAccount', [SocialAccountsController::class, 'index'])->name('socialAccount');
+    Route::post('/createSocialAccounts', [SocialAccountsController::class, 'createSocialAccounts'])->name('createSocialAccounts');
+    Route::get('/getSocialAccountData', [SocialAccountsController::class, 'getSocialAccountData'])->name('getSocialAccountData');
+    Route::delete('/deleteSocialAccount/{id}', [SocialAccountsController::class, 'deleteSocialAccount'])->name('deleteSocialAccount');
+    Route::get('fetchSocialAccount', [SocialAccountsController::class,'fetchSocialAccount'])->name('fetchSocialAccount');
 
     //Proxy
     Route::get('/proxy', [ProxyController::class, 'index'])->name('proxy');

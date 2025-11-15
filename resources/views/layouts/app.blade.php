@@ -318,7 +318,7 @@
                         </li>
 
                         <li>
-                            <a href="{{ route('social-account') }}"
+                            <a href="{{ route('socialAccount') }}"
                                 class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('social-account') ? 'active' : '' }}">
                                 <i class="fas fa-user-friends mr-4 text-blue-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Social Account</span>
@@ -418,6 +418,7 @@
 
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
     @if (isset($modules))
         @foreach ($modules as $module)

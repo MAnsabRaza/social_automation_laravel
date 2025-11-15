@@ -8,6 +8,7 @@ class SocialAccounts extends Model
 {
     protected $table = 'social_accounts';
     protected $fillable = [
+        'current_date',
         'user_id',
         'platform',
         'account_username',
