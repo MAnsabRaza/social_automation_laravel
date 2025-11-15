@@ -204,6 +204,7 @@
     @php
         $userName = session('user_name');
         $email = session('email');
+        $role=session('role_name');
         $companyName = 'Social-Automation';
         $isLoggedIn = auth()->check();
     @endphp
@@ -298,7 +299,7 @@
 
                         <div class="flex-1">
                             <h3 class="font-bold text-white text-lg">{{ $companyName }}</h3>
-                            <p class="text-sm text-blue-300">{{ $email }}</p>
+                            <p class="text-sm text-blue-300">{{ $role }}</p>
                         </div>
                     </div>
                 </div>

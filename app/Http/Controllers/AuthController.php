@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,38 +13,55 @@ class AuthController extends Controller
     {
         return view('auth/login');
     }
-    public function showSignUp(){
+    public function showSignUp()
+    {
         return view('auth/signup');
     }
+
     public function create(Request $request)
     {
         $data = $request->all();
-        if(User::where('email', $data['email'])->exists()){
+
+        // Check if email already exists
+        if (User::where('email', $data['email'])->exists()) {
             return redirect()->back()->with('error', 'Email already exists! Please use a different email.');
         }
-        //login for existing user
-        if(isset($data['id'])){
-            $user=User::find($data['id']);
-            if($user){
-                $user->name=$data['name'];
-                $user->email=$data['email'];
-                if(!empty($data['password'])){
-                    $user->password=bcrypt($data['password']);
+
+        // Find or create 'user' role
+        $role = Role::firstOrCreate(
+            ['name' => 'user'], // Check if role with name 'user' exists
+            ['current_date' => now()] // If not, create it with current date
+        );
+
+        // Update existing user (if ID exists)
+        if (isset($data['id'])) {
+            $user = User::find($data['id']);
+            if ($user) {
+                $user->name = $data['name'];
+                $user->email = $data['email'];
+                if (!empty($data['password'])) {
+                    $user->password = bcrypt($data['password']);
                 }
+                $user->role_id = $role->id; // Assign role
                 $user->save();
-                return response()->json(['success'=>true,'message'=>'User updated successfully']);
-            }else{
-                return response()->json(['success'=>false,'message'=>'User not found']);
+                return response()->json(['success' => true, 'message' => 'User updated successfully']);
+            } else {
+                return response()->json(['success' => false, 'message' => 'User not found']);
             }
         }
-        $user=new User();
-        $user->name=$data['name'];
-        $user->email=$data['email'];
-        $user->password=bcrypt($data['password']);
+
+        // Create new user
+        $user = new User();
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->password = bcrypt($data['password']);
+        $user->role_id = $role->id; // Assign 'user' role
         $user->save();
-       return redirect()->route('showLogin')->with('success', 'Account created successfully! Please login.');
+
+        return redirect()->route('showLogin')->with('success', 'Account created successfully! Please login.');
     }
-   public function checkLogin(Request $request)
+
+    public function checkLogin(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
@@ -52,10 +70,11 @@ class AuthController extends Controller
         if ($user && Hash::check($credentials['password'], $user->password)) {
             Auth::login($user, true);
 
-        session([
-            'user_name'=>$user->name,
-            'email'=>$user->email
-        ]);
+            session([
+                'user_name' => $user->name,
+                'email' => $user->email,
+               'role_name' => $user->role ? $user->role->name : null
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -69,31 +88,32 @@ class AuthController extends Controller
             ], 401);
         }
     }
-  public function logout(Request $request)
-{
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-    return redirect()->route('showLogin');
-}
+        return redirect()->route('showLogin');
+    }
 
-       
-    public function delete($id){
-        $user=User::find($id);
-        if($user){
+
+    public function delete($id)
+    {
+        $user = User::find($id);
+        if ($user) {
             $user->delete();
-            return response()->json(['success'=>true,'message'=>'User deleted successfully']);
-        }
-        else{
-            return response()->json(['success'=>false,'message'=>'User not found']);
+            return response()->json(['success' => true, 'message' => 'User deleted successfully']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'User not found']);
         }
     }
-    public function fetch($id){
-        $user=User::find($id);
-        if($user){
-            return response()->json(['success'=>true,'data'=>$user]);
+    public function fetch($id)
+    {
+        $user = User::find($id);
+        if ($user) {
+            return response()->json(['success' => true, 'data' => $user]);
         }
-        return response()->json(['success'=>false,'message'=>'User not found']);
+        return response()->json(['success' => false, 'message' => 'User not found']);
     }
 }
