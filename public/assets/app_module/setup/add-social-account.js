@@ -144,21 +144,23 @@ let SocialAccountController = function () {
                 columns: [
                     { data: "id", name: "id" },
                     { data: "current_date", name: "current_date" },
-                    { data: "proxy_username", name: "proxy_username" },
-                    { data: "proxy_password", name: "proxy_password" },
-                    { data: "proxy_type", name: "proxy_type" },
+                    { data: "account_username", name: "account_username" },
+                    { data: "account_email", name: "account_email" },
+                    { data: "account_password", name: "account_password" },
+                    { data: "proxy_id", name: "proxy_id" },
                     {
-                        data: "is_active",
-                        name: "is_active",
+                        data: "status",
+                        name: "status",
                         render: function (data) {
-                            return data == 1
+                            return data == 'active'
                                 ? `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-semibold">Active</span>`
                                 : `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-semibold">Inactive</span>`;
                         },
                     },
-                    { data: "proxy_port", name: "proxy_port" },
-                    { data: "proxy_host", name: "proxy_host" },
-                    { data: "last_used", name: "last_used" },
+                    { data: "daily_actions_count", name: "daily_actions_count" },
+                    { data: "auth_token", name: "auth_token" },
+                    { data: "session_data", name: "session_data" },
+                       { data: "cookies", name: "cookies" },
                     {
                         data: null,
                         render: function (data, type, row) {

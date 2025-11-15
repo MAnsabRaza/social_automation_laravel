@@ -201,12 +201,14 @@
                             <th class="p-3">ID</th>
                             <th class="p-3">Date</th>
                             <th class="p-3">User Name</th>
+                            <th class="p-3">Email</th>
                             <th class="p-3">Password</th>
-                            <th class="p-3">Proxy Type</th>
+                            <th class="p-3">Proxy</th>
                             <th class="p-3">Status</th>
-                            <th class="p-3">Proxy Port</th>
-                            <th class="p-3">Proxy Host</th>
-                            <th class="p-3">Last Used</th>
+                            <th class="p-3">Daily Action Count</th>
+                            <th class="p-3">Auth Token</th>
+                            <th class="p-3">Cookies</th>
+                            <th class="p-3">Session Data</th>
                             <th class="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
