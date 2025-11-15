@@ -12,7 +12,7 @@ class SocialAccountsController extends Controller
 {
     public function index()
     {
-        $data['proxy']=Proxy::where('is_active',1)->get();
+        $data['proxy'] = Proxy::where('is_active', 1)->get();
         $data['modules'] = ['setup/add-social-account.js'];
         return view('social-account/social-account', $data);
     }
@@ -101,5 +101,57 @@ class SocialAccountsController extends Controller
             return response()->json(['success' => false, 'message' => 'Social Account not found']);
         }
         return response()->json(['success' => true, 'data' => $socialAccount]);
+    }
+    private function convertDate($date)
+    {
+        if (!$date)
+            return null;
+
+        // Convert any date format into Y-m-d
+        $timestamp = strtotime($date);
+
+        if ($timestamp === false) {
+            return null;
+        }
+
+        return date('Y-m-d', $timestamp);
+    }
+
+
+    public function importCSV(Request $request)
+    {
+        $file = $request->file('csv_file');
+        $handle = fopen($file, 'r');
+        $userId = Auth::id();
+        $row = 0;
+        while (($data = fgetcsv($handle, 10000, ",")) !== FALSE) {
+
+            if ($row == 0) {
+                $row++;
+                continue;
+            }
+
+            SocialAccounts::create([
+                'current_date' => $this->convertDate($data[0]),
+                'user_id' => $userId,
+                'platform' => $data[1],
+                'account_username' => $data[2],
+                'account_email' => $data[3],
+                'account_password' => $data[4],
+                'account_phone' => $data[5],
+                'cookies' => $data[6],
+                'auth_token' => $data[7],
+                'session_data' => $data[8],
+                'proxy_id' => $data[9],
+                'status' => $data[10],
+                'last_login' => $this->convertDate($data[11]),
+                'warmup_level' => $data[12],
+                'daily_actions_count' => $data[13]
+            ]);
+            $row++;
+        }
+        fclose($handle);
+
+        return redirect()->back()->with('success', 'CSV Imported Successfully');
     }
 }

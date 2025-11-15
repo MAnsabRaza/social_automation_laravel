@@ -11,9 +11,9 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 
 
@@ -320,7 +320,7 @@
                         <li>
                             <a href="{{ route('socialAccount') }}"
                                 class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('social-account') ? 'active' : '' }}">
-                                <i class="fas fa-user-friends mr-4 text-blue-400 nav-icon text-lg"></i>
+                                <i class="fas fa-user-friends mr-4 text-yellow-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Social Account</span>
                             </a>
                         </li>
@@ -328,7 +328,7 @@
                         <li>
                             <a href="{{ route('proxy') }}"
                                 class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('proxy') ? 'active' : '' }}">
-                                <i class="fas fa-server mr-4 text-blue-400 nav-icon text-lg"></i>
+                                <i class="fas fa-server mr-4 text-red-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Proxy</span>
                             </a>
                         </li>
@@ -349,34 +349,32 @@
                                 </span>
                                 <i id="settingsChevron" class="fas fa-chevron-down text-gray-400 chevron-rotate"></i>
                             </button>
-                            <ul id="settingsDropdown" class="dropdown-menu ml-4 mt-1 space-y-1">
-                                <!-- Account -->
-                                <li>
-                                    <button id="accountToggle"
-                                        class="flex items-center justify-between w-full px-4 py-2 text-gray-400 rounded-lg hover:bg-gray-700 transition-colors">
-                                        <span class="flex items-center text-sm"><i
-                                                class="fas fa-wallet mr-3 text-blue-300"></i> Account</span>
-                                        <i id="accountChevron"
-                                            class="fas fa-chevron-down text-gray-500 text-xs chevron-rotate"></i>
-                                    </button>
-                                    <ul id="accountDropdown" class="dropdown-menu ml-4 space-y-1">
-                                        <li><a href=""
-                                                class="nested-item flex items-center px-4 py-2 text-gray-400 rounded-lg text-sm"><i
-                                                    class="fas fa-sitemap mr-3 text-xs"></i>Account Type</a></li>
 
-                                    </ul>
+                            <!-- Settings Dropdown -->
+                            <ul id="settingsDropdown" class="dropdown-menu ml-4 mt-1 space-y-1">
+
+                                <!-- Direct Account Type (NO Account Toggle) -->
+                                <li>
+                                    <a href="{{ route('profile') }}"
+                                        class="nested-item flex items-center px-4 py-2 text-gray-400 rounded-lg text-sm hover:bg-gray-700 transition-colors">
+                                        <i class="fas fa-users mr-3 text-xs"></i> Profile
+                                    </a>
                                 </li>
-                                <!-- Master, Item, Admin... (same structure) -->
-                                <!-- Add others as needed -->
+
+                                <!-- Add more items here if needed -->
+
                             </ul>
                         </li>
 
+                        <!-- Help Center -->
                         <li>
                             <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl">
                                 <i class="fas fa-question-circle mr-4 text-cyan-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Help Center</span>
                             </a>
                         </li>
+
+                        <!-- Logout -->
                         <form action="{{ route('logout') }}" method="POST" class="inline">
                             @csrf
                             <button type="submit"
@@ -385,6 +383,7 @@
                             </button>
                         </form>
                     </ul>
+
                 </nav>
             </div>
         </aside>

@@ -31,20 +31,26 @@ let SocialAccountController = function () {
     $tabList.on("click", showListTab);
     $btnAddNew.on("click", () => {
         showFormTab();
-        $("#proxyForm")[0].reset();
+        $("#socialAccountForm")[0].reset();
         $("#proxy_id").val("");
     });
 
     const populateData = function (elem) {
-        $("#proxy_username").val(elem.proxy_username);
-        $("#proxy_password").val(elem.proxy_password);
-        $("#proxy_type").val(elem.proxy_type);
-        $("#proxy_host").val(elem.proxy_host);
-        $("#proxy_port").val(elem.proxy_port);
-        $("#is_active").prop("checked", elem.is_active == 1);
-        $("#last_used").val(elem.last_used);
+        $("#account_username").val(elem.account_username);
+        $("#account_password").val(elem.account_password);
+        $("#platform").val(elem.platform);
         $("#current_date").val(elem.current_date);
-        $("#proxy_id").val(elem.id);
+        $("#social_account_id").val(elem.id);
+        $("#proxy_id").val(elem.proxy_id);
+        $("#daily_actions_count").val(elem.daily_actions_count);
+        $("#account_email").val(elem.account_email);
+        $("#status").val(elem.status);
+        $("#auth_token").val(elem.auth_token);
+        $("#session_data").val(elem.session_data);
+        $("#cookies").val(elem.cookies);
+        $("#account_phone").val(elem.account_phone);
+        $("#warmup_level").val(elem.warmup_level);
+        $("#last_login").val(elem.last_login);
     };
 
     // const fetchProxyData = async (id) => {
@@ -152,15 +158,49 @@ let SocialAccountController = function () {
                         data: "status",
                         name: "status",
                         render: function (data) {
-                            return data == 'active'
-                                ? `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-semibold">Active</span>`
-                                : `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-semibold">Inactive</span>`;
+                            let label = "";
+                            let bg = "";
+                            let text = "";
+
+                            switch (data) {
+                                case "active":
+                                    bg = "bg-green-100";
+                                    text = "text-green-800";
+                                    label = "Active";
+                                    break;
+
+                                case "inactive":
+                                    bg = "bg-gray-100";
+                                    text = "text-blue-800";
+                                    label = "Inactive";
+                                    break;
+
+                                case "banned":
+                                    bg = "bg-red-100";
+                                    text = "text-red-800";
+                                    label = "Banned";
+                                    break;
+
+                                case "suspended":
+                                    bg = "bg-yellow-100";
+                                    text = "text-yellow-800";
+                                    label = "Suspended";
+                                    break;
+
+                                default:
+                                    bg = "bg-gray-100";
+                                    text = "text-gray-800";
+                                    label = data;
+                            }
+
+                            return `<span class="${bg} ${text} px-2 py-1 rounded text-sm font-semibold">${label}</span>`;
                         },
                     },
-                    { data: "daily_actions_count", name: "daily_actions_count" },
+
+                    { data: "platform", name: "platform" },
                     { data: "auth_token", name: "auth_token" },
                     { data: "session_data", name: "session_data" },
-                       { data: "cookies", name: "cookies" },
+                    { data: "cookies", name: "cookies" },
                     {
                         data: null,
                         render: function (data, type, row) {
@@ -176,7 +216,7 @@ let SocialAccountController = function () {
             });
 
             // Submit form via AJAX
-            $("#proxyForm").submit(function (e) {
+            $("#socialAccountForm").submit(function (e) {
                 e.preventDefault();
                 $.ajax({
                     url: $(this).attr("action"),
@@ -186,8 +226,8 @@ let SocialAccountController = function () {
                         if (res.success) {
                             alert(res.message);
                             table.ajax.reload();
-                            $("#proxyForm")[0].reset();
-                            $("#proxy_id").val("");
+                            $("#socialAccountForm")[0].reset();
+                            $("#social_account_id").val("");
                             showListTab();
                         }
                     },
@@ -211,6 +251,17 @@ let SocialAccountController = function () {
             });
             $("#refresh-btn").on("click", function () {
                 window.location.reload();
+            });
+            // Import CSV button click
+            $("#importCsvBtn").on("click", function () {
+                $("#csvFileInput").click();
+            });
+
+            // Auto-submit when file selected
+            $("#csvFileInput").on("change", function () {
+                if (this.files.length > 0) {
+                    $("#csvImportForm").submit();
+                }
             });
         },
     };
