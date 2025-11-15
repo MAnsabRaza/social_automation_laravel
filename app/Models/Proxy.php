@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+
 use Illuminate\Database\Eloquent\Model;
 
 class Proxy extends Model
 {
     protected $table = 'proxies';
     protected $fillable = [
+        'current_date',
         'user_id',
+        'proxy_host',
         'proxy_type',
         'proxy_port',
         'proxy_username',
         'proxy_password',
-        'status',
+        'is_active',
         'last_used',
     ];
 }

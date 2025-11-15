@@ -4,15 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'ERP') - {{ session('company_name', 'ERP') }}</title>
+    <title>@yield('title', 'Social-Account') - {{ session('company_name', 'Social-Account') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Tailwind CSS v2.2.19 -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Notyf -->
-    <link href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" rel="stylesheet" />
+    
+     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+
 
     <style>
         body {
@@ -314,10 +317,23 @@
                             </a>
                         </li>
 
+                        <li>
+                            <a href="{{ route('social-account') }}"
+                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('social-account') ? 'active' : '' }}">
+                                <i class="fas fa-user-friends mr-4 text-blue-400 nav-icon text-lg"></i>
+                                <span class="font-medium">Social Account</span>
+                            </a>
+                        </li>
 
-
-
+                        <li>
+                            <a href="{{ route('proxy') }}"
+                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('proxy') ? 'active' : '' }}">
+                                <i class="fas fa-server mr-4 text-blue-400 nav-icon text-lg"></i>
+                                <span class="font-medium">Proxy</span>
+                            </a>
+                        </li>
                     </ul>
+
 
                     <div class="px-6 mt-6 mb-3">
                         <h4 class="text-xs uppercase tracking-wider text-gray-400 font-bold">Management</h4>
@@ -384,7 +400,7 @@
                         &copy; {{ date('Y') }} <span class="font-semibold">{{ $companyName }}</span>. All rights
                         reserved.
                     </div>
-                    <div class="text-xs text-gray-400">Powered by ERP System v2.0</div>
+                    <div class="text-xs text-gray-400">Powered by Social-Account System v2.0</div>
                 </div>
             </footer>
         </main>
@@ -393,17 +409,23 @@
     <!-- Overlay -->
     <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden hidden transition-opacity">
     </div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
     @if (isset($modules))
         @foreach ($modules as $module)
-            <script src="{{ asset('asset/app_module/' . $module) }}"></script>
+            <script src="{{ asset('assets/app_module/' . $module) }}"></script>
         @endforeach
     @endif
     {{-- custom.js --}}
-    <script src="{{ asset('asset/app_module/custom.js') }}"></script>
+    <script src="{{ asset('assets/app_module/custom.js') }}"></script>
     <script>
         // Profile Dropdown
         $('#profileToggle').on('click', function (e) {
