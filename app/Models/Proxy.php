@@ -19,4 +19,13 @@ class Proxy extends Model
         'is_active',
         'last_used',
     ];
+      public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function socialAccounts()
+    {
+        return $this->hasMany(SocialAccounts::class);
+    }
 }

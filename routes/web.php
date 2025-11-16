@@ -2,10 +2,12 @@
 
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CaptchaSettingsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProxyController;
 use App\Http\Controllers\SocialAccountsController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 //Login
 Route::get('/', [AuthController::class, 'showLogin'])->name('showLogin');
@@ -38,7 +40,24 @@ Route::post('/importCSV', [SocialAccountsController::class, 'importCSV'])
     Route::get('/getProxyData', [ProxyController::class, 'getProxyData'])->name('getProxyData');
     Route::delete('/deleteProxy/{id}', [ProxyController::class, 'deleteProxy'])->name('deleteProxy');
     Route::get('/fetchProxyData/{id}', [ProxyController::class, 'fetchProxyData'])->name('fetchProxyData');
+    //Captcha Setting
+    Route::get('/captchaSetting', [CaptchaSettingsController::class, 'index'])->name('captchaSetting');
+    Route::post('/createCaptcha', [CaptchaSettingsController::class, 'createCaptcha'])->name('createCaptcha');
+    Route::get('/getCaptchaSettingData', [CaptchaSettingsController::class, 'getCaptchaSettingData'])->name('getCaptchaSettingData');
+    Route::delete('/deleteCaptchaSettingData/{id}', [CaptchaSettingsController::class, 'deleteCaptchaSettingData'])->name('deleteCaptchaSettingData');
+    Route::get('/fetchCaptchaSettingData/{id}', [CaptchaSettingsController::class, 'fetchCaptchaSettingData'])->name('fetchCaptchaSettingData');
+   //Task
+    Route::get('/task', [TaskController::class, 'index'])->name('task');
+    Route::post('createTask', [TaskController::class,['createTask']])->name('createTask');
+    Route::get('fetchTaskData/{id}', [TaskController::class,['fetchTaskData']])->name('fetchTaskData');
+    Route::get('getTaskData', [TaskController::class,['getTaskData']])->name('getTaskData');
+    Route::delete('/deleteTask/{id}', [TaskController::class, 'deleteTask'])->name('deleteTask');
 
+    //dispatch task
+
+    Route::post('/dispatchTask/{taskId}', [TaskController::class, 'dispatchTask'])->name('dispatchTask');
+
+    
     //proflie
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/saveUser', [ProfileController::class, 'saveUser'])->name('saveUser');

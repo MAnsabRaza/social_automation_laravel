@@ -24,4 +24,18 @@ class SocialAccounts extends Model
         'warmup_level',
         'daily_actions_count',
     ];
+     public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function proxy()
+    {
+        return $this->belongsTo(Proxy::class);
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'account_id');
+    }
 }

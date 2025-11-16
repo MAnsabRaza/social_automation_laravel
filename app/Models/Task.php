@@ -8,6 +8,7 @@ class Task extends Model
 {
     protected $table = 'tasks';
     protected $fillable = [
+        'current_date',
         'user_id',
         'account_id',
         'task_type',
@@ -20,4 +21,13 @@ class Task extends Model
         'error_message',
         'executed_at',
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function socialAccount()
+    {
+        return $this->belongsTo(SocialAccounts::class, 'account_id');
+    }
 }

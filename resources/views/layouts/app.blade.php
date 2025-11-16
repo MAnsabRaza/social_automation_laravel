@@ -333,6 +333,20 @@
                                 <span class="font-medium">Proxy</span>
                             </a>
                         </li>
+                           <li>
+                            <a href="{{ route('captchaSetting') }}"
+                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('proxy') ? 'active' : '' }}">
+                                <i class="fas fa-server mr-4 text-blue-400 nav-icon text-lg"></i>
+                                <span class="font-medium">Captcha Setting</span>
+                            </a>
+                        </li>
+                          <li>
+                            <a href="{{ route('task') }}"
+                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('proxy') ? 'active' : '' }}">
+                                <i class="fas fa-server mr-4 text-yellow-400 nav-icon text-lg"></i>
+                                <span class="font-medium">Task</span>
+                            </a>
+                        </li>
                     </ul>
 
 
