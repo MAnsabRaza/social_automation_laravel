@@ -4,6 +4,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CaptchaSettingsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PostContentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProxyController;
 use App\Http\Controllers\SocialAccountsController;
@@ -54,7 +55,11 @@ Route::post('/importCSV', [SocialAccountsController::class, 'importCSV'])
     Route::delete('/deleteTask/{id}', [TaskController::class, 'deleteTask'])->name('deleteTask');
 
     //post-content
-
+    Route::get('/post-content', [PostContentController::class, 'index'])->name('post-content');
+    Route::post('/createPostContent', [PostContentController::class, 'createPostContent'])->name('createPostContent');
+    Route::get('/getPostContentData', [PostContentController::class, 'getPostContentData'])->name('getPostContentData');
+    Route::get('/fetchPostContentData/{id}', [PostContentController::class, 'fetchPostContentData'])->name('fetchPostContentData');
+    Route::delete('/deletePostContentData/{id}', [PostContentController::class, 'deletePostContentData'])->name('deletePostContentData');
     //dispatch task
     Route::post('/dispatchTask/{taskId}', [TaskController::class, 'dispatchTask'])->name('dispatchTask');
 

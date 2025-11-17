@@ -32,7 +32,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2">
-                                <i class="fas fa-user-friends text-blue-900"></i> Task Management
+                                <i class="fas fa-tasks text-blue-900"></i> Task Management
                             </h2>
                             <p class="text-gray-600 mt-1 text-sm">Add and manage task account</p>
                         </div>

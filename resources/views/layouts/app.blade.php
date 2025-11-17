@@ -204,7 +204,7 @@
     @php
         $userName = session('user_name');
         $email = session('email');
-        $role=session('role_name');
+        $role = session('role_name');
         $companyName = 'Social-Automation';
         $isLoggedIn = auth()->check();
     @endphp
@@ -310,43 +310,61 @@
                         <h4 class="text-xs uppercase tracking-wider text-gray-400 font-bold">Main Menu</h4>
                     </div>
                     <ul class="space-y-1 px-3">
+
+                        <!-- Dashboard -->
                         <li>
-                            <a href="{{ route('home') }}"
-                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('home') ? 'active' : '' }}">
+                            <a href="{{ route('home') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group 
+           {{ request()->routeIs('home') ? 'bg-blue-900 text-white' : '' }}">
                                 <i class="fas fa-home mr-4 text-blue-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Dashboard</span>
                             </a>
                         </li>
 
+                        <!-- Social Account -->
                         <li>
-                            <a href="{{ route('socialAccount') }}"
-                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('social-account') ? 'active' : '' }}">
+                            <a href="{{ route('socialAccount') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
+           {{ request()->routeIs('socialAccount') ? 'bg-yellow-800 text-white' : '' }}">
                                 <i class="fas fa-user-friends mr-4 text-yellow-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Social Account</span>
                             </a>
                         </li>
 
+                        <!-- Proxy -->
                         <li>
-                            <a href="{{ route('proxy') }}"
-                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('proxy') ? 'active' : '' }}">
+                            <a href="{{ route('proxy') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
+           {{ request()->routeIs('proxy') ? 'bg-red-800 text-white' : '' }}">
                                 <i class="fas fa-server mr-4 text-red-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Proxy</span>
                             </a>
                         </li>
-                           <li>
-                            <a href="{{ route('captchaSetting') }}"
-                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('proxy') ? 'active' : '' }}">
-                                <i class="fas fa-server mr-4 text-blue-400 nav-icon text-lg"></i>
+
+                        <!-- Captcha Setting -->
+                        <li>
+                            <a href="{{ route('captchaSetting') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
+           {{ request()->routeIs('captchaSetting') ? 'bg-blue-700 text-white' : '' }}">
+                                <i class="fas fa-robot mr-4 text-blue-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Captcha Setting</span>
                             </a>
                         </li>
-                          <li>
-                            <a href="{{ route('task') }}"
-                                class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group {{ request()->routeIs('proxy') ? 'active' : '' }}">
-                                <i class="fas fa-server mr-4 text-yellow-400 nav-icon text-lg"></i>
+
+                        <!-- Task -->
+                        <li>
+                            <a href="{{ route('task') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
+           {{ request()->routeIs('task') ? 'bg-yellow-700 text-white' : '' }}">
+                                <i class="fas fa-tasks mr-4 text-yellow-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Task</span>
                             </a>
                         </li>
+
+                        <!-- Post Content -->
+                        <li>
+                            <a href="{{ route('post-content') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
+           {{ request()->routeIs('post-content') ? 'bg-green-700 text-white' : '' }}">
+                                <i class="fas fa-pen-fancy mr-4 text-green-400 nav-icon text-lg"></i>
+                                <span class="font-medium">Post Content</span>
+                            </a>
+                        </li>
+
                     </ul>
 
 
