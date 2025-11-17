@@ -48,13 +48,14 @@ Route::post('/importCSV', [SocialAccountsController::class, 'importCSV'])
     Route::get('/fetchCaptchaSettingData/{id}', [CaptchaSettingsController::class, 'fetchCaptchaSettingData'])->name('fetchCaptchaSettingData');
    //Task
     Route::get('/task', [TaskController::class, 'index'])->name('task');
-    Route::post('createTask', [TaskController::class,['createTask']])->name('createTask');
-    Route::get('fetchTaskData/{id}', [TaskController::class,['fetchTaskData']])->name('fetchTaskData');
-    Route::get('getTaskData', [TaskController::class,['getTaskData']])->name('getTaskData');
+    Route::post('/createTask', [TaskController::class, 'createTask'])->name('createTask');
+    Route::get('/fetchTaskData/{id}', [TaskController::class,'fetchTaskData'])->name('fetchTaskData');
+    Route::get('/getTaskData', [TaskController::class, 'getTaskData'])->name('getTaskData');
     Route::delete('/deleteTask/{id}', [TaskController::class, 'deleteTask'])->name('deleteTask');
 
-    //dispatch task
+    //post-content
 
+    //dispatch task
     Route::post('/dispatchTask/{taskId}', [TaskController::class, 'dispatchTask'])->name('dispatchTask');
 
     

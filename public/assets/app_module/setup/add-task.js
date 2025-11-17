@@ -36,15 +36,18 @@ let TaskController = function () {
     });
 
     const populateData = function (elem) {
-        $("#proxy_username").val(elem.proxy_username);
-        $("#proxy_password").val(elem.proxy_password);
-        $("#proxy_type").val(elem.proxy_type);
-        $("#proxy_host").val(elem.proxy_host);
-        $("#proxy_port").val(elem.proxy_port);
-        $("#is_active").prop("checked", elem.is_active == 1);
-        $("#last_used").val(elem.last_used);
         $("#current_date").val(elem.current_date);
-        $("#proxy_id").val(elem.id);
+        $("#task_id").val(elem.id);
+        $("#account_id").val(elem.account_id);
+        $("task_type").val(elem.task_type);
+        $("#task_content").val(elem.task_content);
+        $("#target_url").val(elem.target_url);
+        $("#scheduled_at").val(elem.scheduled_at);
+        $("#status").val(elem.status);
+        $("#priority").val(elem.priority);
+        $("#retry_count").val(elem.retry_count);
+        $("#error_message").val(elem.error_message);
+        $("#executed_at").val(elem.executed_at);
     };
 
     // const fetchProxyData = async (id) => {
@@ -56,10 +59,10 @@ let TaskController = function () {
     //         }
     //     });
     // };
-    const fetchProxyData = async (id) => {
+    const fetchTaskData = async (id) => {
         $.ajax({
             type: "GET",
-            url: "/fetchProxyData/" + id,
+            url: "/fetchTaskData/" + id,
             dataType: "JSON",
             headers: {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
@@ -95,12 +98,12 @@ let TaskController = function () {
         });
     };
 
-    const deleteProxyData = function (id) {
-        if (!confirm("Are you sure you want to delete this proxy?")) return;
+    const deleteTaskData = function (id) {
+        if (!confirm("Are you sure you want to delete this task?")) return;
 
         $.ajax({
             type: "DELETE",
-            url: "/deleteProxy/" + id,
+            url: "/deleteTask/" + id,
             headers: {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
             },
@@ -136,29 +139,21 @@ let TaskController = function () {
 
     return {
         init: function () {
-            table = $("#proxy_table").DataTable({
+            table = $("#task_table").DataTable({
                 autoWidth: false,
                 processing: true,
                 serverSide: true,
-                ajax: "/getProxyData",
+                ajax: "/getTaskData",
                 columns: [
                     { data: "id", name: "id" },
                     { data: "current_date", name: "current_date" },
-                    { data: "proxy_username", name: "proxy_username" },
-                    { data: "proxy_password", name: "proxy_password" },
-                    { data: "proxy_type", name: "proxy_type" },
-                    {
-                        data: "is_active",
-                        name: "is_active",
-                        render: function (data) {
-                            return data == 1
-                                ? `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-semibold">Active</span>`
-                                : `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-semibold">Inactive</span>`;
-                        },
-                    },
-                    { data: "proxy_port", name: "proxy_port" },
-                    { data: "proxy_host", name: "proxy_host" },
-                    { data: "last_used", name: "last_used" },
+                    { data: "task_type", name: "task_type" },
+                    { data: "task_content", name: "task_content" },
+                    { data: "target_url", name: "target_url" },
+                      { data: "status", name: "status" },
+                  
+                    { data: "priority", name: "priority" },
+                    { data: "retry_count", name: "retry_count" },
                     {
                         data: null,
                         render: function (data, type, row) {
@@ -174,7 +169,7 @@ let TaskController = function () {
             });
 
             // Submit form via AJAX
-            $("#proxyForm").submit(function (e) {
+            $("#task_table").submit(function (e) {
                 e.preventDefault();
                 $.ajax({
                     url: $(this).attr("action"),
@@ -184,8 +179,8 @@ let TaskController = function () {
                         if (res.success) {
                             alert(res.message);
                             table.ajax.reload();
-                            $("#proxyForm")[0].reset();
-                            $("#proxy_id").val("");
+                            $("#task_table")[0].reset();
+                            $("#task_id").val("");
                             showListTab();
                         }
                     },
@@ -196,16 +191,16 @@ let TaskController = function () {
             });
 
             // Edit
-            $("#proxy_table").on("click", ".edit-btn", function () {
+            $("#task_table").on("click", ".edit-btn", function () {
                 const id = $(this).data("id");
-                fetchProxyData(id);
+                fetchTaskData(id);
                 showFormTab();
             });
 
             // Delete
-            $("#proxy_table").on("click", ".delete-btn", function () {
+            $("#task_table").on("click", ".delete-btn", function () {
                 const id = $(this).data("id");
-                deleteProxyData(id);
+                deleteTaskData(id);
             });
             $("#refresh-btn").on("click", function () {
                 window.location.reload();
