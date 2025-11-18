@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Proxy;
 use App\Models\SocialAccounts;
+use App\Services\SocialLoginService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -62,9 +63,23 @@ class SocialAccountsController extends Controller
         $socialAccount->warmup_level = $data['warmup_level'];
         $socialAccount->daily_actions_count = $data['daily_actions_count'];
         $socialAccount->save();
-        $socialAccount->save();
+        // In your createSocialAccounts method, update the try-catch block:
+        // In createSocialAccounts method
+        try {
+            $loginService = app(SocialLoginService::class);
+            $loginSuccess = $loginService->login($socialAccount);
 
-        return redirect()->route('socialAccount')->with('success', 'Social Account created successfully');
+            if ($loginSuccess) {
+                return redirect()->route('socialAccount')
+                    ->with('success', 'Social Account saved & successfully logged in!');
+            } else {
+                return redirect()->route('socialAccount')
+                    ->with('warning', 'Account saved but login failed. Check credentials or proxy.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->route('socialAccount')
+                ->with('error', 'Account saved but auto-login error: ' . $e->getMessage());
+        }
     }
     public function getSocialAccountData()
     {

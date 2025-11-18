@@ -11,15 +11,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class TaskController extends Controller
 {
-    public function dispatchTask($taskId)
-    {
-        $task = Task::findOrFail($taskId);
-        RunTaskJob::dispatch($task);
-
-        return response()->json([
-            'message' => 'Task dispatched to queue successfully!'
-        ]);
-    }
+   
     public function index()
     {
        $data['accounts'] = SocialAccounts::all();

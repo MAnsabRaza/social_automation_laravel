@@ -2,6 +2,7 @@
 
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AutomationController;
 use App\Http\Controllers\CaptchaSettingsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostContentController;
@@ -60,10 +61,9 @@ Route::post('/importCSV', [SocialAccountsController::class, 'importCSV'])
     Route::get('/getPostContentData', [PostContentController::class, 'getPostContentData'])->name('getPostContentData');
     Route::get('/fetchPostContentData/{id}', [PostContentController::class, 'fetchPostContentData'])->name('fetchPostContentData');
     Route::delete('/deletePostContentData/{id}', [PostContentController::class, 'deletePostContentData'])->name('deletePostContentData');
-    //dispatch task
-    Route::post('/dispatchTask/{taskId}', [TaskController::class, 'dispatchTask'])->name('dispatchTask');
 
-    
+    //Automation COntroller
+      Route::get('/auto-login', [AutomationController::class, 'autoLogin'])->name('auto-login');
     //proflie
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/saveUser', [ProfileController::class, 'saveUser'])->name('saveUser');
