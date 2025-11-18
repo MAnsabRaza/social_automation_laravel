@@ -41,7 +41,6 @@
                     </div>
 
                     <div class="space-x-2">
-
                         <!-- Save -->
                         <button type="submit"
                             class="px-5 py-2.5 rounded-xl text-white bg-green-600 hover:bg-green-700 shadow-md">
