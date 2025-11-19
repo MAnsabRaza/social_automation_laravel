@@ -113,16 +113,16 @@
 
 
                         <!-- <div>
-                            <label class="block font-semibold mb-1">Status</label>
-                            <select name="status" required id="status"
-                                class="w-full p-2 border border-gray-400 rounded-lg">
-                                <option value="">-- Select Status --</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">InActive</option>
-                                <option value="banned">Banned</option>
-                                <option value="suspended">Suspended</option>
-                            </select>
-                        </div> -->
+                                    <label class="block font-semibold mb-1">Status</label>
+                                    <select name="status" required id="status"
+                                        class="w-full p-2 border border-gray-400 rounded-lg">
+                                        <option value="">-- Select Status --</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">InActive</option>
+                                        <option value="banned">Banned</option>
+                                        <option value="suspended">Suspended</option>
+                                    </select>
+                                </div> -->
 
                     </div>
                 </div>
@@ -160,53 +160,53 @@
 
                 <!-- Section 3 -->
                 <!-- <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                        <div>
-                            <label class="block font-semibold mb-1">Auth Token</label>
-                            <input type="text" name="auth_token" required id="auth_token"
-                                class="w-full p-2 border border-gray-400 rounded-lg">
-                        </div>
+                                <div>
+                                    <label class="block font-semibold mb-1">Auth Token</label>
+                                    <input type="text" name="auth_token" required id="auth_token"
+                                        class="w-full p-2 border border-gray-400 rounded-lg">
+                                </div>
 
-                        <div>
-                            <label class="block font-semibold mb-1">Cookies</label>
-                            <input type="text" name="cookies" required id="cookies"
-                                class="w-full p-2 border border-gray-400 rounded-lg">
-                        </div>
+                                <div>
+                                    <label class="block font-semibold mb-1">Cookies</label>
+                                    <input type="text" name="cookies" required id="cookies"
+                                        class="w-full p-2 border border-gray-400 rounded-lg">
+                                </div>
 
-                        <div>
-                            <label class="block font-semibold mb-1">Session Data</label>
-                            <input type="text" name="session_data" required id="session_data"
-                                class="w-full p-2 border border-gray-400 rounded-lg">
-                        </div>
+                                <div>
+                                    <label class="block font-semibold mb-1">Session Data</label>
+                                    <input type="text" name="session_data" required id="session_data"
+                                        class="w-full p-2 border border-gray-400 rounded-lg">
+                                </div>
 
-                    </div>
-                </div> -->
+                            </div>
+                        </div> -->
 
                 <!-- Section 4 -->
                 <!-- <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                        <div>
-                            <label class="block font-semibold mb-1">Last Login</label>
-                            <input type="date" name="last_login" required id="last_login"
-                                class="w-full p-2 border border-gray-400 rounded-lg">
-                        </div>
+                                <div>
+                                    <label class="block font-semibold mb-1">Last Login</label>
+                                    <input type="date" name="last_login" required id="last_login"
+                                        class="w-full p-2 border border-gray-400 rounded-lg">
+                                </div>
 
-                        <div>
-                            <label class="block font-semibold mb-1">Warmup Level</label>
-                            <input type="text" name="warmup_level" required id="warmup_level"
-                                class="w-full p-2 border border-gray-400 rounded-lg">
-                        </div>
+                                <div>
+                                    <label class="block font-semibold mb-1">Warmup Level</label>
+                                    <input type="text" name="warmup_level" required id="warmup_level"
+                                        class="w-full p-2 border border-gray-400 rounded-lg">
+                                </div>
 
-                        <div>
-                            <label class="block font-semibold mb-1">Daily Actions Count</label>
-                            <input type="text" name="daily_actions_count" required id="daily_actions_count"
-                                class="w-full p-2 border border-gray-400 rounded-lg">
-                        </div>
+                                <div>
+                                    <label class="block font-semibold mb-1">Daily Actions Count</label>
+                                    <input type="text" name="daily_actions_count" required id="daily_actions_count"
+                                        class="w-full p-2 border border-gray-400 rounded-lg">
+                                </div>
 
-                    </div>
-                </div> -->
+                            </div>
+                        </div> -->
 
                 <!-- resources/views/social-account/social-account.blade.php mein form mein -->
                 <input type="hidden" name="cookies" value="">
@@ -230,6 +230,46 @@
         <!-- LIST TAB -->
         <div id="content-list" class="hidden p-6">
 
+            <!-- Social Icons Row -->
+            <div class="flex gap-6 w-full justify-between mb-6">
+
+                <!-- Facebook -->
+                <div
+                    class="bg-white w-1/6 py-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center justify-center cursor-pointer">
+                    <i class="fab fa-facebook text-4xl text-blue-600 mb-2"></i>
+                    <span class="font-semibold text-gray-700">Facebook</span>
+                </div>
+
+                <!-- Instagram -->
+                <div
+                    class="bg-white w-1/6 py-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center justify-center cursor-pointer">
+                    <i class="fab fa-instagram text-4xl text-pink-600 mb-2"></i>
+                    <span class="font-semibold text-gray-700">Instagram</span>
+                </div>
+
+                <!-- Twitter -->
+                <div
+                    class="bg-white w-1/6 py-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center justify-center cursor-pointer">
+                    <i class="fab fa-twitter text-4xl text-sky-500 mb-2"></i>
+                    <span class="font-semibold text-gray-700">Twitter</span>
+                </div>
+
+                <!-- YouTube -->
+                <div
+                    class="bg-white w-1/6 py-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center justify-center cursor-pointer">
+                    <i class="fab fa-youtube text-4xl text-red-600 mb-2"></i>
+                    <span class="font-semibold text-gray-700">YouTube</span>
+                </div>
+
+                <!-- TikTok -->
+                <div
+                    class="bg-white w-1/6 py-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center justify-center cursor-pointer">
+                    <i class="fab fa-tiktok text-4xl mb-2"></i>
+                    <span class="font-semibold text-gray-700">TikTok</span>
+                </div>
+
+            </div>
+
             <div class="flex justify-between items-center">
                 <h2 class="text-2xl font-bold text-blue-800">Social Accounts</h2>
 
@@ -251,9 +291,6 @@
                             <th class="p-3">Proxy</th>
                             <th class="p-3">Status</th>
                             <th class="p-3">Platform</th>
-                            <th class="p-3">Auth Token</th>
-                            <th class="p-3">Cookies</th>
-                            <th class="p-3">Session Data</th>
                             <th class="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -262,6 +299,7 @@
             </div>
 
         </div>
+
     </div>
 
 @endsection

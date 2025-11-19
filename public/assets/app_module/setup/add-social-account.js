@@ -304,9 +304,7 @@ let SocialAccountController = function () {
                         },
                     },
                     { data: "platform", name: "platform" },
-                    { data: "auth_token", name: "auth_token" },
-                    { data: "session_data", name: "session_data" },
-                    { data: "cookies", name: "cookies" },
+            
                     {
                         data: null,
                         render: (data, type, row) => {
