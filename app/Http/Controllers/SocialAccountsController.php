@@ -65,20 +65,18 @@ class SocialAccountsController extends Controller
         $socialAccount->save();
         return redirect()->route('socialAccount')->with('success', 'Social Account created successfully');
     }
-    public function getSocialAccountData()
+    public function getSocialAccountData(Request $request)
     {
+        $query = SocialAccounts::where('user_id', Auth::id());
 
-        // if (Auth::user()->role === 'admin') {
-        //     // Admin can see all data
-        //     $proxy = Proxy::all();
-        // } else {
-        //     // Regular user can see only their own data
-        //     $proxy = Proxy::where('user_id', Auth::id())->get();
-        // }
-        $socialAccount = SocialAccounts::where('user_id', Auth::id())->get();
-        return DataTables::of($socialAccount)->make(true);
+        // Filter by platform if provided
+        if ($request->platform) {
+            $query->where('platform', $request->platform);
+        }
 
+        return DataTables::of($query)->make(true);
     }
+
     public function deleteSocialAccount($id)
     {
         $socialAccount = SocialAccounts::find($id);

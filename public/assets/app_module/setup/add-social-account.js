@@ -115,296 +115,151 @@ let SocialAccountController = function () {
         });
     };
 
-    // ======================================================
-    // AUTO-LOGIN ENGINE – FULLY WORKING (2025)
-    // ======================================================
-    const loginHandlers = {
-        instagram: {
-            url: "https://www.instagram.com/accounts/login/",
-            waitFor: 'input[name="username"]',
-            fill: (doc) => {
-                const u = doc.querySelector('input[name="username"]');
-                const p = doc.querySelector('input[name="password"]');
-                const btn = doc.querySelector('button[type="submit"]');
-                if (u && p && btn) {
-                    u.value = window.__LOGIN_USER__;
-                    p.value = window.__LOGIN_PASS__;
-                    ["input", "change"].forEach((e) => {
-                        u.dispatchEvent(new Event(e, { bubbles: true }));
-                        p.dispatchEvent(new Event(e, { bubbles: true }));
-                    });
-                    setTimeout(() => btn.click(), 600);
-                }
-            },
-        },
-        facebook: {
-            url: "https://www.facebook.com/login.php",
-            waitFor: "#email",
-            fill: (doc) => {
-                const email = doc.getElementById("email");
-                const pass = doc.getElementById("pass");
-                const login =
-                    doc.querySelector('button[name="login"]') ||
-                    doc.querySelector(
-                        'button[data-testid="royal_login_button"]'
-                    );
-                if (email && pass && login) {
-                    email.value = window.__LOGIN_USER__;
-                    pass.value = window.__LOGIN_PASS__;
-                    setTimeout(() => login.click(), 600);
-                }
-            },
-        },
-        youtube: {
-            url: "https://accounts.google.com/signin/v2/identifier?service=youtube&flowName=GlifWebSignIn",
-            waitFor: 'input[type="email"]',
-            fill: (doc) => {
-                const email = doc.querySelector('input[type="email"]');
-                if (email) {
-                    email.value = window.__LOGIN_USER__;
-                    email.dispatchEvent(new Event("input", { bubbles: true }));
-                    setTimeout(() => {
-                        const next =
-                            doc.getElementById("identifierNext") ||
-                            doc.querySelector("button");
-                        if (next) next.click();
-                    }, 800);
-                }
-            },
-        },
-        linkedin: {
-            url: "https://www.linkedin.com/login",
-            waitFor: "#username",
-            fill: (doc) => {
-                const u = doc.getElementById("username");
-                const p = doc.getElementById("password");
-                const btn = doc.querySelector('button[type="submit"]');
-                if (u && p && btn) {
-                    u.value = window.__LOGIN_USER__;
-                    p.value = window.__LOGIN_PASS__;
-                    setTimeout(() => btn.click(), 600);
-                }
-            },
-        },
-        google_business: {
-            url: "https://accounts.google.com/signin",
-            waitFor: 'input[type="email"]',
-            fill: (doc) => {
-                const email = doc.querySelector('input[type="email"]');
-                if (email) {
-                    email.value = window.__LOGIN_USER__;
-                    email.dispatchEvent(new Event("input", { bubbles: true }));
-                    setTimeout(() => {
-                        const next = doc.querySelector(
-                            "#identifierNext, button"
-                        );
-                        if (next) next.click();
-                    }, 800);
-                }
-            },
-        },
-    };
-
-    const performAutoLogin = function (platform, username, password) {
-        const handler = loginHandlers[platform.toLowerCase()];
-        if (!handler) {
-            alert(`Auto-login not supported for ${platform}`);
-            return;
-        }
-
-        const newTab = window.open(handler.url, "_blank");
-        if (!newTab) {
-            alert("Please allow pop-ups");
-            return;
-        }
-
-        const safeUser = username.replace(/"/g, '\\"');
-        const safePass = password.replace(/"/g, '\\"');
-
-        const script = `
-        window.__LOGIN_USER__ = "${safeUser}";
-        window.__LOGIN_PASS__ = "${safePass}";
-        const fill = ${handler.fill.toString()};
-        let attempts = 0;
-        const iv = setInterval(() => {
-            if (document.readyState === 'complete') {
-                const el = document.querySelector("${handler.waitFor}");
-                if (el) {
-                    clearInterval(iv);
-                    fill(document);
-                }
-            }
-            if (++attempts > 200) clearInterval(iv);
-        }, 100);
-    `;
-
-        newTab.addEventListener("load", () => {
-            const s = newTab.document.createElement("script");
-            s.textContent = script;
-            (
-                newTab.document.head || newTab.document.documentElement
-            ).appendChild(s);
-            s.remove();
-        });
-    };
-
-    // ======================================================
-    // DATATABLE
-    // ======================================================
     let table;
+    let platformFilter = ""; // default = show all
 
-    return {
-        init: function () {
-            const today = new Date().toISOString().split("T")[0];
-            $("#current_date").val(today);
+    $(document).ready(function () {
+        const today = new Date().toISOString().split("T")[0];
+        $("#current_date").val(today);
 
-            table = $("#social_account_table").DataTable({
-                autoWidth: false,
-                processing: true,
-                serverSide: true,
-                ajax: "/getSocialAccountData",
-                columns: [
-                    { data: "id", name: "id" },
-                    { data: "current_date", name: "current_date" },
-                    { data: "account_username", name: "account_username" },
-                    { data: "account_email", name: "account_email" },
-                    { data: "account_password", name: "account_password" },
-                    { data: "proxy_id", name: "proxy_id" },
-                    {
-                        data: "status",
-                        render: (data) => {
-                            const map = {
-                                active: {
-                                    bg: "bg-green-100",
-                                    text: "text-green-800",
-                                    label: "Active",
-                                },
-                                inactive: {
-                                    bg: "bg-gray-100",
-                                    text: "text-blue-800",
-                                    label: "Inactive",
-                                },
-                                banned: {
-                                    bg: "bg-red-100",
-                                    text: "text-red-800",
-                                    label: "Banned",
-                                },
-                                suspended: {
-                                    bg: "bg-yellow-100",
-                                    text: "text-yellow-800",
-                                    label: "Suspended",
-                                },
-                            };
-                            const s = map[data] || {
-                                bg: "bg-gray-100",
-                                text: "text-gray-800",
-                                label: data,
-                            };
-                            return `<span class="${s.bg} ${s.text} px-2 py-1 rounded text-sm font-semibold">${s.label}</span>`;
-                        },
+        // Initialize DataTable
+        table = $("#social_account_table").DataTable({
+            autoWidth: false,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "/getSocialAccountData",
+                data: function (d) {
+                    d.platform = platformFilter; // send current filter to backend
+                },
+            },
+            columns: [
+                { data: "id" },
+                { data: "current_date" },
+                { data: "account_username" },
+                { data: "account_email" },
+                { data: "account_password" },
+                { data: "proxy_id" },
+                {
+                    data: "status",
+                    render: function (data) {
+                        const map = {
+                            inprogress: {
+                                bg: "bg-yellow-100",
+                                text: "text-orange-800",
+                                label: "In Progress",
+                            },
+                            complete: {
+                                bg: "bg-green-100",
+                                text: "text-green-800",
+                                label: "Complete",
+                            },
+                            error: {
+                                bg: "bg-red-100",
+                                text: "text-red-800",
+                                label: "Error",
+                            },
+                            pending: {
+                                bg: "bg-yellow-100",
+                                text: "text-yellow-800",
+                                label: "Pending",
+                            },
+                        };
+                        const s = map[data] || {
+                            bg: "bg-gray-100",
+                            text: "text-gray-800",
+                            label: data || "Unknown",
+                        };
+                        return `<span class="${s.bg} ${s.text} px-2 py-1 rounded text-sm font-semibold">${s.label}</span>`;
                     },
-                    { data: "platform", name: "platform" },
-            
-                    {
-                        data: null,
-                        render: (data, type, row) => {
-                            // let loginBtn = "";
-                            // if (row.status === "active") {
-                            //     loginBtn = `<button class="login-btn px-2 py-1 mx-1 border border-green-600 rounded text-green-600 hover:bg-green-600 hover:text-white text-xs"
-                            //                         data-platform="${row.platform}"
-                            //                         data-username="${row.account_username}"
-                            //                         data-password="${row.account_password}">
-                            //                         <i class="fa-solid fa-sign-in-alt"></i> Login
-                            //                     </button>`;
-                            // }
-                            return `
-                                    <div class="flex gap-1 justify-center">
-                                        <button class="edit-btn px-2 py-1 border border-blue-600 rounded text-blue-600 hover:bg-blue-600 hover:text-white text-xs" data-id="${row.id}">
-                                            <i class="fa-solid fa-edit"></i>
-                                        </button>
-                                        <button class="delete-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white text-xs" data-id="${row.id}">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                      <button class="login-btn px-2 py-1 border border-green-600 rounded text-green-600 hover:bg-green-600 hover:text-white text-xs"
-        data-platform="instagram"
-        data-username="${row.account_username}"
-        data-password="${row.account_password}">
-<i class="fa-solid fa-sign-in-alt"></i> Login
-</button>
-
-                                    </div>
-                                `;
-                        },
-                        orderable: false,
-                        searchable: false,
+                },
+                { data: "platform" },
+                {
+                    data: null,
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return `
+                        <div class="flex gap-1 justify-center">
+                            <button class="start-btn px-2 py-1 border border-green-600 rounded text-green-600 hover:bg-green-600 hover:text-white text-xs" data-id="${row.id}">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                            <button class="stop-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white text-xs" data-id="${row.id}">
+                                <i class="fa-solid fa-stop"></i>
+                            </button>
+                            <button class="edit-btn px-2 py-1 border border-blue-600 rounded text-blue-600 hover:bg-blue-600 hover:text-white text-xs" data-id="${row.id}">
+                                <i class="fa-solid fa-edit"></i>
+                            </button>
+                            <button class="delete-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white text-xs" data-id="${row.id}">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>`;
                     },
-                ],
+                },
+            ],
+        });
+
+        // ==================== PLATFORM CARD FILTERING ====================
+        $(".platform-card").on("click", function () {
+            const platform = $(this).data("platform");
+
+            // Remove active style from all cards
+            $(".platform-card").removeClass("ring-4 ring-blue-500 bg-blue-50");
+
+            if (platformFilter === platform) {
+                // Clicking the same platform again → show all
+                platformFilter = "";
+            } else {
+                // Apply new filter
+                platformFilter = platform;
+                $(this).addClass("ring-4 ring-blue-500 bg-blue-50");
+            }
+
+            // Reload table with new filter
+            table.ajax.reload();
+        });
+
+        // Other event listeners
+        $("#social_account_table").on("click", ".edit-btn", function () {
+            fetchSocialAccountData($(this).data("id"));
+        });
+
+        $("#social_account_table").on("click", ".delete-btn", function () {
+            deleteSocialAccount($(this).data("id"));
+        });
+
+        $("#refresh-btn").on("click", () => location.reload());
+        $("#importCsvBtn").on("click", () => $("#csvFileInput").click());
+        $("#csvFileInput").on("change", function () {
+            if (this.files.length > 0) $("#csvImportForm").submit();
+        });
+
+        $("#socialAccountForm").on("submit", function (e) {
+            e.preventDefault();
+            $.ajax({
+                url: $(this).attr("action"),
+                method: "POST",
+                data: $(this).serialize(),
+                success: function () {
+                    Toastify({
+                        text: "Saved successfully!",
+                        backgroundColor: "#4BB543",
+                    }).showToast();
+
+                    table.ajax.reload();
+                    $("#socialAccountForm")[0].reset();
+                    $("#social_account_id").val("");
+                    $("#current_date").val(today);
+                    showListTab(); // your function to switch tab
+                },
+                error: function (err) {
+                    Toastify({
+                        text: err.responseJSON?.message || "An error occurred",
+                        backgroundColor: "#f44336",
+                    }).showToast();
+                },
             });
-
-            $("#social_account_table").on("click", ".login-btn", function () {
-                const platform = $(this).data("platform");
-                const username = $(this).data("username");
-                const password = $(this).data("password");
-
-                if (!username || !password) {
-                    alert("Username or password missing!");
-                    return;
-                }
-
-                performAutoLogin(platform, username, password);
-            });
-
-            // Event Listeners
-            $("#social_account_table").on("click", ".edit-btn", function () {
-                fetchSocialAccountData($(this).data("id"));
-            });
-
-            $("#social_account_table").on("click", ".delete-btn", function () {
-                deleteSocialAccount($(this).data("id"));
-            });
-
-            $("#social_account_table").on("click", ".login-btn", function () {
-                const platform = $(this).data("platform");
-                const username = $(this).data("username");
-                const password = $(this).data("password");
-                performAutoLogin(platform, username, password);
-            });
-
-            $("#refresh-btn").on("click", () => location.reload());
-
-            $("#importCsvBtn").on("click", () => $("#csvFileInput").click());
-            $("#csvFileInput").on("change", function () {
-                if (this.files.length > 0) $("#csvImportForm").submit();
-            });
-
-            // Form Submit
-            $("#socialAccountForm").on("submit", function (e) {
-                e.preventDefault();
-                $.ajax({
-                    url: $(this).attr("action"),
-                    method: "POST",
-                    data: $(this).serialize(),
-                    success: () => {
-                        Toastify({
-                            text: "Saved!",
-                            backgroundColor: "#4BB543",
-                        }).showToast();
-                        table.ajax.reload();
-                        this.reset();
-                        $("#social_account_id").val("");
-                        $("#current_date").val(today);
-                        showListTab();
-                    },
-                    error: (err) => {
-                        Toastify({
-                            text: err.responseJSON?.message || "Error",
-                            backgroundColor: "#f44336",
-                        }).showToast();
-                    },
-                });
-            });
-        },
-    };
+        });
+    });
 };
 
 const socialAccount = new SocialAccountController();
