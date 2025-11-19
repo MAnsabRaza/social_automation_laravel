@@ -36,6 +36,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/fetchSocialAccountData/{id}', [SocialAccountsController::class,'fetchSocialAccountData'])->name('fetchSocialAccountData');
 Route::post('/importCSV', [SocialAccountsController::class, 'importCSV'])
     ->name('importCSV');
+
+   Route::post('/startAccount/{id}', [SocialAccountsController::class, 'startAccount'])->name('startAccount');
+Route::get('/runAccount/{id}', [SocialAccountsController::class, 'runAccount'])->name('runAccount');
     //Proxy
     Route::get('/proxy', [ProxyController::class, 'index'])->name('proxy');
     Route::post('/createProxy', [ProxyController::class, 'createProxy'])->name(name: 'createProxy');

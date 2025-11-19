@@ -7,6 +7,7 @@ use App\Models\SocialAccounts;
 use App\Services\SocialLoginService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+;
 use Yajra\DataTables\Facades\DataTables;
 
 class SocialAccountsController extends Controller
@@ -114,7 +115,6 @@ class SocialAccountsController extends Controller
         return date('Y-m-d', $timestamp);
     }
 
-
     public function importCSV(Request $request)
     {
         $file = $request->file('csv_file');
@@ -151,4 +151,52 @@ class SocialAccountsController extends Controller
 
         return redirect()->back()->with('success', 'CSV Imported Successfully');
     }
+
+    public function runAccount($id)
+    {
+        $account = SocialAccounts::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+
+        $platforms = [
+            'facebook' => 'https://www.facebook.com',
+            'instagram' => 'https://www.instagram.com',
+            'twitter' => 'https://twitter.com',
+            'youtube' => 'https://www.youtube.com',
+            'tiktok' => 'https://www.tiktok.com',
+        ];
+
+        $url = $platforms[$account->platform] ?? 'https://google.com';
+
+        // Decode saved cookies (JSON format)
+        $cookies = $account->cookies ? json_decode($account->cookies, true) : [];
+
+        return view('social-account/social-account-run', compact('account', 'url', 'cookies'));
+    }
+    public function startAccount($id)
+    {
+        $account = SocialAccounts::findOrFail($id);
+
+        $account->status = 'inprogress';
+        $account->save();
+
+        $loginService = new SocialLoginService();
+
+        try {
+            $loginService->login($account);
+        } catch (\Exception $e) {
+            $account->status = 'error';
+            $account->save();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        $loginService->quit();
+
+        $account->status = 'complete';
+        $account->save();
+
+        return response()->json(['success' => true]);
+    }
+
 }

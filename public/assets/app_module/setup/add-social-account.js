@@ -88,6 +88,30 @@ let SocialAccountController = function () {
         });
     };
 
+    const startAccount=function(id){
+        $.ajax({
+        url: "/startAccount/" + id,
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+        },
+        success: function (res) {
+            if (res.success) {
+                Toastify({
+                    text: "Starting... Opening new tab",
+                    backgroundColor: "#4BB543"
+                }).showToast();
+                window.open(`/runAccount/${id}`, "_blank");
+
+                table.ajax.reload();
+            }
+        },
+        error: function () {
+            Toastify({ text: "Failed to start", backgroundColor: "#f44336" }).showToast();
+        }
+        });
+    }
+
     // Delete account
     const deleteSocialAccount = function (id) {
         if (!confirm("Delete this account?")) return;
@@ -116,69 +140,67 @@ let SocialAccountController = function () {
     };
 
     let table;
-    let platformFilter = ""; // default = show all
+    let platformFilter = "";
+    const today = new Date().toISOString().split("T")[0];
+    $("#current_date").val(today);
 
-    $(document).ready(function () {
-        const today = new Date().toISOString().split("T")[0];
-        $("#current_date").val(today);
-
-        // Initialize DataTable
-        table = $("#social_account_table").DataTable({
-            autoWidth: false,
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: "/getSocialAccountData",
-                data: function (d) {
-                    d.platform = platformFilter; // send current filter to backend
+    // Initialize DataTable
+    table = $("#social_account_table").DataTable({
+        autoWidth: false,
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "/getSocialAccountData",
+            data: function (d) {
+                d.platform = platformFilter; // send current filter to backend
+            },
+        },
+        columns: [
+            { data: "id" },
+            { data: "current_date" },
+            { data: "account_username" },
+            { data: "account_email" },
+            { data: "account_password" },
+            { data: "proxy_id" },
+            {
+                data: "status",
+                render: function (data) {
+                    const map = {
+                        inprogress: {
+                            bg: "bg-yellow-100",
+                            text: "text-orange-800",
+                            label: "In Progress",
+                        },
+                        complete: {
+                            bg: "bg-green-100",
+                            text: "text-green-800",
+                            label: "Complete",
+                        },
+                        error: {
+                            bg: "bg-red-100",
+                            text: "text-red-800",
+                            label: "Error",
+                        },
+                        pending: {
+                            bg: "bg-yellow-100",
+                            text: "text-yellow-800",
+                            label: "Pending",
+                        },
+                    };
+                    const s = map[data] || {
+                        bg: "bg-gray-100",
+                        text: "text-gray-800",
+                        label: data || "Unknown",
+                    };
+                    return `<span class="${s.bg} ${s.text} px-2 py-1 rounded text-sm font-semibold">${s.label}</span>`;
                 },
             },
-            columns: [
-                { data: "id" },
-                { data: "current_date" },
-                { data: "account_username" },
-                { data: "account_email" },
-                { data: "account_password" },
-                { data: "proxy_id" },
-                {
-                    data: "status",
-                    render: function (data) {
-                        const map = {
-                            inprogress: {
-                                bg: "bg-yellow-100",
-                                text: "text-orange-800",
-                                label: "In Progress",
-                            },
-                            complete: {
-                                bg: "bg-green-100",
-                                text: "text-green-800",
-                                label: "Complete",
-                            },
-                            error: {
-                                bg: "bg-red-100",
-                                text: "text-red-800",
-                                label: "Error",
-                            },
-                            pending: {
-                                bg: "bg-yellow-100",
-                                text: "text-yellow-800",
-                                label: "Pending",
-                            },
-                        };
-                        const s = map[data] || {
-                            bg: "bg-gray-100",
-                            text: "text-gray-800",
-                            label: data || "Unknown",
-                        };
-                        return `<span class="${s.bg} ${s.text} px-2 py-1 rounded text-sm font-semibold">${s.label}</span>`;
-                    },
-                },
-                { data: "platform" },
-                {
-                    data: null,
-                    orderable: false,
-                    render: function (data, type, row) {
-                        return `
+            { data: "platform" },
+            {
+                data: null,
+                orderable: false,
+                render: function (data, type, row) {
+                    return `
                         <div class="flex gap-1 justify-center">
                             <button class="start-btn px-2 py-1 border border-green-600 rounded text-green-600 hover:bg-green-600 hover:text-white text-xs" data-id="${row.id}">
                                 <i class="fa-solid fa-play"></i>
@@ -193,71 +215,73 @@ let SocialAccountController = function () {
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>`;
-                    },
                 },
-            ],
-        });
+            },
+        ],
+    });
 
-        // ==================== PLATFORM CARD FILTERING ====================
-        $(".platform-card").on("click", function () {
-            const platform = $(this).data("platform");
+    // ==================== PLATFORM CARD FILTERING ====================
+    $(".platform-card").on("click", function () {
+        const platform = $(this).data("platform");
 
-            // Remove active style from all cards
-            $(".platform-card").removeClass("ring-4 ring-blue-500 bg-blue-50");
+        // Remove active style from all cards
+        $(".platform-card").removeClass("ring-4 ring-blue-500 bg-blue-50");
 
-            if (platformFilter === platform) {
-                // Clicking the same platform again → show all
-                platformFilter = "";
-            } else {
-                // Apply new filter
-                platformFilter = platform;
-                $(this).addClass("ring-4 ring-blue-500 bg-blue-50");
-            }
+        if (platformFilter === platform) {
+            // Clicking the same platform again → show all
+            platformFilter = "";
+        } else {
+            // Apply new filter
+            platformFilter = platform;
+            $(this).addClass("ring-4 ring-blue-500 bg-blue-50");
+        }
 
-            // Reload table with new filter
-            table.ajax.reload();
-        });
+        // Reload table with new filter
+        table.ajax.reload();
+    });
 
-        // Other event listeners
-        $("#social_account_table").on("click", ".edit-btn", function () {
-            fetchSocialAccountData($(this).data("id"));
-        });
+    // Other event listeners
+    $("#social_account_table").on("click", ".start-btn", function () {
+        startAccount($(this).data("id"));
+    });
+    $("#social_account_table").on("click", ".edit-btn", function () {
+        fetchSocialAccountData($(this).data("id"));
+    });
 
-        $("#social_account_table").on("click", ".delete-btn", function () {
-            deleteSocialAccount($(this).data("id"));
-        });
+    $("#social_account_table").on("click", ".delete-btn", function () {
+        deleteSocialAccount($(this).data("id"));
+    });
 
-        $("#refresh-btn").on("click", () => location.reload());
-        $("#importCsvBtn").on("click", () => $("#csvFileInput").click());
-        $("#csvFileInput").on("change", function () {
-            if (this.files.length > 0) $("#csvImportForm").submit();
-        });
+    $("#refresh-btn").on("click", () => location.reload());
+    $("#importCsvBtn").on("click", () => $("#csvFileInput").click());
+    $("#csvFileInput").on("change", function () {
+        if (this.files.length > 0) $("#csvImportForm").submit();
+    });
 
-        $("#socialAccountForm").on("submit", function (e) {
-            e.preventDefault();
-            $.ajax({
-                url: $(this).attr("action"),
-                method: "POST",
-                data: $(this).serialize(),
-                success: function () {
-                    Toastify({
-                        text: "Saved successfully!",
-                        backgroundColor: "#4BB543",
-                    }).showToast();
+    $("#socialAccountForm").on("submit", function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            method: "POST",
+            data: $(this).serialize(),
+            success: function () {
+                Toastify({
+                    text: "Saved successfully!",
+                    backgroundColor: "#4BB543",
+                }).showToast();
 
-                    table.ajax.reload();
-                    $("#socialAccountForm")[0].reset();
-                    $("#social_account_id").val("");
-                    $("#current_date").val(today);
-                    showListTab(); // your function to switch tab
-                },
-                error: function (err) {
-                    Toastify({
-                        text: err.responseJSON?.message || "An error occurred",
-                        backgroundColor: "#f44336",
-                    }).showToast();
-                },
-            });
+                table.ajax.reload();
+                $("#socialAccountForm")[0].reset();
+                $("#social_account_id").val("");
+                $("#current_date").val(today);
+                showListTab(); // your function to switch tab
+            },
+            error: function (err) {
+                Toastify({
+                    text: err.responseJSON?.message || "An error occurred",
+                    backgroundColor: "#f44336",
+                }).showToast();
+            },
         });
     });
 };
