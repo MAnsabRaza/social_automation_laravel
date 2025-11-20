@@ -191,12 +191,15 @@ class SocialAccountsController extends Controller
             ]);
         }
 
-        $loginService->quit();
+        // ❌ REMOVE THIS to keep browser open
+        // $loginService->quit();
 
+        // Update status but do NOT close the browser
         $account->status = 'complete';
         $account->save();
 
         return response()->json(['success' => true]);
     }
+
 
 }
