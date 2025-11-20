@@ -39,10 +39,14 @@ let PostContentController = function () {
         $("#current_date").val(elem.current_date);
         $("#post_content_id").val(elem.id);
         $("#content").val(elem.content);
-        $("#media_urls").val(elem.media_urls);
         $("#title").val(elem.title);
         $("#hashtags").val(elem.hashtags);
         $("#category").val(elem.category);
+        if (elem.media_urls) {
+            $("#previewImage")
+                .attr("src", elem.media_urls)
+                .removeClass("hidden");
+        }
     };
 
     // const fetchProxyData = async (id) => {
@@ -144,7 +148,15 @@ let PostContentController = function () {
                     { data: "current_date", name: "current_date" },
                     { data: "title", name: "title" },
                     { data: "content", name: "content" },
-                    { data: "media_urls", name: "media_urls" },
+                    {
+                        data: "media_urls",
+                        render: function (data) {
+                            return data
+                                ? `<img src="${data}" class="w-16 h-16 rounded"/>`
+                                : "";
+                        },
+                    },
+
                     { data: "hashtags", name: "hashtags" },
 
                     { data: "category", name: "category" },

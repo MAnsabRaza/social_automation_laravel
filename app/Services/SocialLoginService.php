@@ -67,7 +67,7 @@ class SocialLoginService
     }
 
     // INSTAGRAM LOGIN
-    
+
     private function instagramLogin($account)
     {
         $this->driver->get('https://www.instagram.com/accounts/login/');
@@ -150,52 +150,47 @@ class SocialLoginService
     }
     //Tiktok Login
     private function tiktokLogin($account)
-{
-    // TikTok login page
-    $this->driver->get('https://www.tiktok.com/login');
-    sleep(5);
+    {
+        // TikTok login page
+        $this->driver->get('https://www.tiktok.com/login');
+        sleep(5);
 
-    try {
-        $this->driver->findElement(WebDriverBy::xpath("//div[contains(text(),'Use phone / email / username')]"))
-            ->click();
+        try {
+            $this->driver->findElement(WebDriverBy::xpath("//div[contains(text(),'Use phone / email / username')]"))
+                ->click();
 
-        sleep(2);
+            sleep(2);
 
-        $this->driver->findElement(WebDriverBy::xpath("//div[contains(text(),'Email / Username')]"))
-            ->click();
+            $this->driver->findElement(WebDriverBy::xpath("//div[contains(text(),'Email / Username')]"))
+                ->click();
 
-        sleep(2);
+            sleep(2);
 
-        $this->driver->findElement(WebDriverBy::xpath("//input[@type='text']"))
-            ->sendKeys($account->account_username);
+            $this->driver->findElement(WebDriverBy::xpath("//input[@type='text']"))
+                ->sendKeys($account->account_username);
 
-        // Enter password
-        $this->driver->findElement(WebDriverBy::xpath("//input[@type='password']"))
-            ->sendKeys($account->account_password);
+            // Enter password
+            $this->driver->findElement(WebDriverBy::xpath("//input[@type='password']"))
+                ->sendKeys($account->account_password);
 
-        // Click Login button
-        $this->driver->findElement(WebDriverBy::xpath("//button[contains(text(),'Log in')]"))
-            ->click();
+            // Click Login button
+            $this->driver->findElement(WebDriverBy::xpath("//button[contains(text(),'Log in')]"))
+                ->click();
 
-        sleep(6);
+            sleep(6);
 
-        // Handle CAPTCHA if appears
-        if (strpos($this->driver->getPageSource(), 'recaptcha') !== false) {
-            $this->solveCaptcha();
+            // Handle CAPTCHA if appears
+            if (strpos($this->driver->getPageSource(), 'recaptcha') !== false) {
+                $this->solveCaptcha();
+            }
+
+            return true;
+
+        } catch (\Exception $e) {
+            throw new \Exception("❌ TikTok Login Error: " . $e->getMessage());
         }
-
-        return true;
-
-    } catch (\Exception $e) {
-        throw new \Exception("❌ TikTok Login Error: " . $e->getMessage());
     }
-}
-
-
-
-    // ---------------------------------------
     // CAPTCHA SOLVER
-    // ---------------------------------------
     private function solveCaptcha()
     {
         try {
@@ -210,7 +205,7 @@ class SocialLoginService
 
             $pageUrl = $this->driver->getCurrentURL();
 
-            $token = \App\Services\CaptchaSolver::solveRecaptchaV2($siteKey, $pageUrl);
+            $token = CaptchaSolver::solveRecaptchaV2($siteKey, $pageUrl);
 
             $this->driver->executeScript("
                 document.getElementById('g-recaptcha-response').value = '{$token}';

@@ -24,7 +24,7 @@
         <!-- FORM TAB -->
         <div id="content-form">
 
-            <form action="{{ route('createPostContent') }}" method="POST">
+            <form action="{{ route('createPostContent') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="id" id="post_content_id">
 
@@ -92,7 +92,9 @@
                         </div>
                         <div class="mt-4">
                             <label class="font-semibold">Media Url</label>
-                            <input type="text" name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg" required>
+                            <input type="file" name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg" required>
+                            <img id="previewImage" src="" class="w-32 h-32 mt-2 border hidden" />
+
                         </div>
                         <div class="mt-4">
                             <label class="font-semibold">hashtags</label>

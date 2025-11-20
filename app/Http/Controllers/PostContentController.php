@@ -18,6 +18,12 @@ class PostContentController extends Controller
     {
         $data = $request->all();
         $userId = Auth::id();
+        $base64Image = null;
+
+        if ($request->hasFile('media_urls')) {
+            $file = $request->file('media_urls');
+            $base64Image = "data:" . $file->getMimeType() . ";base64," . base64_encode(file_get_contents($file));
+        }
         if (isset($data['id'])) {
             $post_content = PostContent::find($data['id']);
             if ($post_content) {
@@ -25,7 +31,9 @@ class PostContentController extends Controller
                 $post_content->user_id = $userId;
                 $post_content->title = $data['title'];
                 $post_content->content = $data['content'];
-                $post_content->media_urls = $data['media_urls'];
+                if ($base64Image !== null) {
+                    $post_content->media_urls = $base64Image;
+                }
                 $post_content->hashtags = $data['hashtags'];
                 $post_content->category = $data['category'];
                 $post_content->save();
@@ -40,7 +48,7 @@ class PostContentController extends Controller
         $post_content->user_id = $userId;
         $post_content->title = $data['title'];
         $post_content->content = $data['content'];
-        $post_content->media_urls = $data['media_urls'];
+         $post_content->media_urls = $base64Image; 
         $post_content->hashtags = $data['hashtags'];
         $post_content->category = $data['category'];
         $post_content->save();
