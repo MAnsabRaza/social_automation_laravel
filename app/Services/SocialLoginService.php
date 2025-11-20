@@ -5,10 +5,6 @@ namespace App\Services;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\WebDriverBy;
-use Facebook\WebDriver\WebDriverExpectedCondition;
-use Illuminate\Support\Facades\Http;
-use App\Models\CaptchaSettings;
-use Illuminate\Support\Facades\Auth;
 
 class SocialLoginService
 {
@@ -16,6 +12,7 @@ class SocialLoginService
 
     public function __construct()
     {
+        // Connect to ChromeDriver running on localhost:9515
         $this->driver = RemoteWebDriver::create(
             'http://localhost:9515',
             DesiredCapabilities::chrome()
@@ -38,150 +35,60 @@ class SocialLoginService
         }
     }
 
-    /**
-     * Solve reCAPTCHA v2 using 2Captcha
-     */
-    private function solveRecaptchaV2($siteKey, $url, $apiKey)
-    {
-        $response = Http::asForm()->post("http://2captcha.com/in.php", [
-            'key' => $apiKey,
-            'method' => 'userrecaptcha',
-            'googlekey' => $siteKey,
-            'pageurl' => $url,
-            'json' => 1,
-        ]);
-
-        if (!isset($response['request'])) {
-            throw new \Exception("2Captcha request failed: " . json_encode($response));
-        }
-
-        $requestId = $response['request'];
-        $timeout = 120; // max 2 minutes
-        $elapsed = 0;
-
-        while ($elapsed < $timeout) {
-            sleep(5);
-            $elapsed += 5;
-
-            $result = Http::get("http://2captcha.com/res.php", [
-                'key' => $apiKey,
-                'action' => 'get',
-                'id' => $requestId,
-                'json' => 1
-            ]);
-
-            if ($result['status'] == 1) {
-                return $result['request']; // captcha token
-            }
-        }
-
-        throw new \Exception("CAPTCHA solving timed out");
-    }
-
-    /**
-     * Check if reCAPTCHA is present
-     */
-    private function isRecaptchaPresent()
-    {
-        try {
-            $this->driver->findElement(WebDriverBy::cssSelector('iframe[src*="recaptcha"]'));
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Facebook login with CAPTCHA handling
-     */
     private function facebookLogin($account)
     {
-        $driver = $this->driver;
+        $this->driver->get('https://www.facebook.com/');
+        sleep(3);
 
-        $driver->get('https://www.facebook.com/');
-        $driver->findElement(WebDriverBy::id('email'))->sendKeys($account->account_username);
-        $driver->findElement(WebDriverBy::id('pass'))->sendKeys($account->account_password);
-        $driver->findElement(WebDriverBy::name('login'))->click();
+        $this->driver->findElement(WebDriverBy::id('email'))->sendKeys($account->account_username);
+        $this->driver->findElement(WebDriverBy::id('pass'))->sendKeys($account->account_password);
 
+        // Click Login
+        $this->driver->findElement(WebDriverBy::name('login'))->click();
         sleep(5);
 
-        // Handle CAPTCHA if present
-        if ($this->isRecaptchaPresent()) {
+        // Check if CAPTCHA appears
+        if (strpos($this->driver->getPageSource(), 'recaptcha') !== false) {
 
-            // Switch to frame and get sitekey
-            $iframe = $driver->findElement(WebDriverBy::cssSelector('iframe[src*="recaptcha"]'));
-            $driver->switchTo()->frame($iframe);
+            // 1. Find site's reCAPTCHA key
+            $iframe = $this->driver->findElement(
+                WebDriverBy::cssSelector('iframe[src*="recaptcha"]')
+            );
+            $src = $iframe->getAttribute("src");
 
-            $siteKey = $driver->findElement(WebDriverBy::cssSelector('.g-recaptcha'))->getAttribute('data-sitekey');
-            $driver->switchTo()->defaultContent();
+            preg_match('/k=([^&]+)/', $src, $matches);
+            $siteKey = $matches[1];
 
-            $captchaSettings = CaptchaSettings::where('user_id', Auth::id())->where('status', 1)->first();
-            if (!$captchaSettings) {
-                throw new \Exception("No active CAPTCHA API key found");
-            }
+            $pageUrl = $this->driver->getCurrentURL();
 
-            $token = $this->solveRecaptchaV2($siteKey, $driver->getCurrentURL(), $captchaSettings->api_key);
+            // 2. Solve using 2Captcha
+            $token = \App\Services\CaptchaSolver::solveRecaptchaV2($siteKey, $pageUrl);
 
-            // Inject token dynamically (works on Facebook/Instagram)
-            $script = "
-                var textarea = document.createElement('textarea');
-                textarea.id = 'g-recaptcha-response';
-                textarea.style.display = 'none';
-                textarea.value = '$token';
-                document.body.appendChild(textarea);
-            ";
-            $driver->executeScript($script);
+            // 3. Inject token inside hidden field
+            $this->driver->executeScript("
+            document.getElementById('g-recaptcha-response').style.display = 'block';
+            document.getElementById('g-recaptcha-response').value = '{$token}';
+        ");
 
-            // Submit login again
-            $driver->findElement(WebDriverBy::name('login'))->click();
+            // 4. Resubmit form
+            $this->driver->executeScript("
+            document.querySelector('button[name=\"login\"]').click();
+        ");
+
             sleep(5);
         }
     }
 
-    /**
-     * Instagram login with optional CAPTCHA
-     */
+
     private function instagramLogin($account)
     {
-        $driver = $this->driver;
+        $this->driver->get('https://www.instagram.com/accounts/login/');
+        sleep(3); // wait for page load
+        $this->driver->findElement(WebDriverBy::name('username'))->sendKeys($account->account_username);
+        $this->driver->findElement(WebDriverBy::name('password'))->sendKeys($account->account_password);
+        $this->driver->findElement(WebDriverBy::xpath("//button[@type='submit']"))->click();
 
-        $driver->get('https://www.instagram.com/accounts/login/');
-        sleep(3);
-
-        $driver->findElement(WebDriverBy::name('username'))->sendKeys($account->account_username);
-        $driver->findElement(WebDriverBy::name('password'))->sendKeys($account->account_password);
-        $driver->findElement(WebDriverBy::xpath("//button[@type='submit']"))->click();
-
-        sleep(5);
-
-        // Instagram reCAPTCHA (if any) handled same as Facebook
-        if ($this->isRecaptchaPresent()) {
-
-            $iframe = $driver->findElement(WebDriverBy::cssSelector('iframe[src*="recaptcha"]'));
-            $driver->switchTo()->frame($iframe);
-            $siteKey = $driver->findElement(WebDriverBy::cssSelector('.g-recaptcha'))->getAttribute('data-sitekey');
-            $driver->switchTo()->defaultContent();
-
-            $captchaSettings = CaptchaSettings::where('user_id', Auth::id())->where('status', 1)->first();
-            if (!$captchaSettings) {
-                throw new \Exception("No active CAPTCHA API key found");
-            }
-
-            $token = $this->solveRecaptchaV2($siteKey, $driver->getCurrentURL(), $captchaSettings->api_key);
-
-            $script = "
-                var textarea = document.createElement('textarea');
-                textarea.id = 'g-recaptcha-response';
-                textarea.style.display = 'none';
-                textarea.value = '$token';
-                document.body.appendChild(textarea);
-            ";
-            $driver->executeScript($script);
-
-            // Submit login again
-            $driver->findElement(WebDriverBy::xpath("//button[@type='submit']"))->click();
-            sleep(5);
-        }
+        sleep(5); // wait for login
     }
 
     public function quit()

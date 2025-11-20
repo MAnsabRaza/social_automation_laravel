@@ -190,16 +190,9 @@ class SocialAccountsController extends Controller
                 'message' => $e->getMessage()
             ]);
         }
-
-        // ❌ REMOVE THIS to keep browser open
-        // $loginService->quit();
-
-        // Update status but do NOT close the browser
-        $account->status = 'complete';
+        $account->status = 'inprogress';
         $account->save();
 
         return response()->json(['success' => true]);
     }
-
-
 }
