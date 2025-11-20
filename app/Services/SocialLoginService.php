@@ -5,6 +5,7 @@ namespace App\Services;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\WebDriverBy;
+use Exception;
 
 class SocialLoginService
 {
@@ -12,7 +13,6 @@ class SocialLoginService
 
     public function __construct()
     {
-        // Connect to ChromeDriver running on localhost:9515
         $this->driver = RemoteWebDriver::create(
             'http://localhost:9515',
             DesiredCapabilities::chrome()
@@ -25,35 +25,184 @@ class SocialLoginService
 
         switch ($platform) {
             case 'facebook':
-                $this->facebookLogin($account);
-                break;
+                return $this->facebookLogin($account);
+
             case 'instagram':
-                $this->instagramLogin($account);
-                break;
+                return $this->instagramLogin($account);
+
+            case 'twitter':
+                return $this->twitterLogin($account);
+
+            case 'youtube':
+                return $this->youtubeLogin($account);
+
+            case 'linkedin':
+                return $this->linkedinLogin($account);
+
             default:
-                throw new \Exception("Platform {$platform} not supported yet");
+                throw new Exception("❌ Platform {$platform} not supported.");
         }
     }
 
+    // FACEBOOK LOGIN
     private function facebookLogin($account)
     {
-        $this->driver->get('https://www.facebook.com/');
+        $this->driver->get('https://www.facebook.com/login');
         sleep(3);
 
-        $this->driver->findElement(WebDriverBy::id('email'))->sendKeys($account->account_username);
-        $this->driver->findElement(WebDriverBy::id('pass'))->sendKeys($account->account_password);
+        $this->driver->findElement(WebDriverBy::id('email'))
+            ->sendKeys($account->account_username);
 
-        // Click Login
+        $this->driver->findElement(WebDriverBy::id('pass'))
+            ->sendKeys($account->account_password);
+
         $this->driver->findElement(WebDriverBy::name('login'))->click();
         sleep(5);
 
-        // Check if CAPTCHA appears
         if (strpos($this->driver->getPageSource(), 'recaptcha') !== false) {
+            $this->solveCaptcha();
+        }
 
-            // 1. Find site's reCAPTCHA key
+        return true;
+    }
+
+    // INSTAGRAM LOGIN
+    
+    private function instagramLogin($account)
+    {
+        $this->driver->get('https://www.instagram.com/accounts/login/');
+        sleep(5);
+
+        $this->driver->findElement(WebDriverBy::name('username'))
+            ->sendKeys($account->account_username);
+
+        $this->driver->findElement(WebDriverBy::name('password'))
+            ->sendKeys($account->account_password);
+
+        $this->driver->findElement(WebDriverBy::xpath("//button[@type='submit']"))
+            ->click();
+
+        sleep(5);
+        return true;
+    }
+
+    // TWITTER LOGIN
+    private function twitterLogin($account)
+    {
+        $this->driver->get('https://twitter.com/login');
+        sleep(5);
+
+        $this->driver->findElement(WebDriverBy::name('text'))
+            ->sendKeys($account->account_username);
+
+        $this->driver->findElement(WebDriverBy::xpath("//span[text()='Next']"))
+            ->click();
+        sleep(3);
+
+        $this->driver->findElement(WebDriverBy::name('password'))
+            ->sendKeys($account->account_password);
+
+        $this->driver->findElement(WebDriverBy::xpath("//span[text()='Log in']"))
+            ->click();
+
+        sleep(5);
+        return true;
+    }
+
+    // YOUTUBE LOGIN (GOOGLE LOGIN)
+    private function youtubeLogin($account)
+    {
+        $this->driver->get('https://accounts.google.com/signin/v2/identifier');
+        sleep(3);
+
+        $this->driver->findElement(WebDriverBy::id('identifierId'))
+            ->sendKeys($account->account_email);
+
+        $this->driver->findElement(WebDriverBy::id('identifierNext'))->click();
+        sleep(3);
+
+        $this->driver->findElement(WebDriverBy::name('password'))
+            ->sendKeys($account->account_password);
+
+        $this->driver->findElement(WebDriverBy::id('passwordNext'))->click();
+        sleep(5);
+
+        return true;
+    }
+
+    // LINKEDIN LOGIN
+    private function linkedinLogin($account)
+    {
+        $this->driver->get('https://www.linkedin.com/login');
+        sleep(4);
+
+        $this->driver->findElement(WebDriverBy::id('username'))
+            ->sendKeys($account->account_email);
+
+        $this->driver->findElement(WebDriverBy::id('password'))
+            ->sendKeys($account->account_password);
+
+        $this->driver->findElement(WebDriverBy::xpath("//button[@type='submit']"))
+            ->click();
+
+        sleep(5);
+        return true;
+    }
+    //Tiktok Login
+    private function tiktokLogin($account)
+{
+    // TikTok login page
+    $this->driver->get('https://www.tiktok.com/login');
+    sleep(5);
+
+    try {
+        $this->driver->findElement(WebDriverBy::xpath("//div[contains(text(),'Use phone / email / username')]"))
+            ->click();
+
+        sleep(2);
+
+        $this->driver->findElement(WebDriverBy::xpath("//div[contains(text(),'Email / Username')]"))
+            ->click();
+
+        sleep(2);
+
+        $this->driver->findElement(WebDriverBy::xpath("//input[@type='text']"))
+            ->sendKeys($account->account_username);
+
+        // Enter password
+        $this->driver->findElement(WebDriverBy::xpath("//input[@type='password']"))
+            ->sendKeys($account->account_password);
+
+        // Click Login button
+        $this->driver->findElement(WebDriverBy::xpath("//button[contains(text(),'Log in')]"))
+            ->click();
+
+        sleep(6);
+
+        // Handle CAPTCHA if appears
+        if (strpos($this->driver->getPageSource(), 'recaptcha') !== false) {
+            $this->solveCaptcha();
+        }
+
+        return true;
+
+    } catch (\Exception $e) {
+        throw new \Exception("❌ TikTok Login Error: " . $e->getMessage());
+    }
+}
+
+
+
+    // ---------------------------------------
+    // CAPTCHA SOLVER
+    // ---------------------------------------
+    private function solveCaptcha()
+    {
+        try {
             $iframe = $this->driver->findElement(
                 WebDriverBy::cssSelector('iframe[src*="recaptcha"]')
             );
+
             $src = $iframe->getAttribute("src");
 
             preg_match('/k=([^&]+)/', $src, $matches);
@@ -61,34 +210,19 @@ class SocialLoginService
 
             $pageUrl = $this->driver->getCurrentURL();
 
-            // 2. Solve using 2Captcha
             $token = \App\Services\CaptchaSolver::solveRecaptchaV2($siteKey, $pageUrl);
 
-            // 3. Inject token inside hidden field
             $this->driver->executeScript("
-            document.getElementById('g-recaptcha-response').style.display = 'block';
-            document.getElementById('g-recaptcha-response').value = '{$token}';
-        ");
+                document.getElementById('g-recaptcha-response').value = '{$token}';
+            ");
 
-            // 4. Resubmit form
             $this->driver->executeScript("
-            document.querySelector('button[name=\"login\"]').click();
-        ");
+                document.querySelector('button[name=\"login\"]').click();
+            ");
 
-            sleep(5);
+        } catch (Exception $e) {
+            throw new Exception("CAPTCHA Solve Failed: " . $e->getMessage());
         }
-    }
-
-
-    private function instagramLogin($account)
-    {
-        $this->driver->get('https://www.instagram.com/accounts/login/');
-        sleep(3); // wait for page load
-        $this->driver->findElement(WebDriverBy::name('username'))->sendKeys($account->account_username);
-        $this->driver->findElement(WebDriverBy::name('password'))->sendKeys($account->account_password);
-        $this->driver->findElement(WebDriverBy::xpath("//button[@type='submit']"))->click();
-
-        sleep(5); // wait for login
     }
 
     public function quit()

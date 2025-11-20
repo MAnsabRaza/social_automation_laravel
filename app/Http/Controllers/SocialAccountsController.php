@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Proxy;
 use App\Models\SocialAccounts;
 use App\Services\SocialLoginService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 ;
@@ -37,7 +38,7 @@ class SocialAccountsController extends Controller
                 $socialAccount->session_data = $data['session_data'];
                 $socialAccount->proxy_id = $data['proxy_id'];
                 $socialAccount->status = $data['status'];
-                $socialAccount->last_login = $data['last_login'];
+                $socialAccount->last_login = now();
                 $socialAccount->warmup_level = $data['warmup_level'];
                 $socialAccount->daily_actions_count = $data['daily_actions_count'];
                 $socialAccount->save();
@@ -60,7 +61,7 @@ class SocialAccountsController extends Controller
         $socialAccount->session_data = $data['session_data'];
         $socialAccount->proxy_id = $data['proxy_id'];
         $socialAccount->status = $data['status'];
-        $socialAccount->last_login = $data['last_login'];
+        $socialAccount->last_login = now();
         $socialAccount->warmup_level = $data['warmup_level'];
         $socialAccount->daily_actions_count = $data['daily_actions_count'];
         $socialAccount->save();
@@ -195,4 +196,17 @@ class SocialAccountsController extends Controller
 
         return response()->json(['success' => true]);
     }
+    public function stopAccount($id)
+    {
+        $account = SocialAccounts::findOrFail($id);
+
+        // If you are running ChromeDriver via server-side service, terminate it here
+        // For now, just update status
+        $account->last_login= Carbon::now();
+        $account->status = 'complete';
+        $account->save();
+
+        return response()->json(['success' => true, 'message' => 'Account stopped']);
+    }
+
 }

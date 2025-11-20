@@ -33,13 +33,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/createSocialAccounts', [SocialAccountsController::class, 'createSocialAccounts'])->name('createSocialAccounts');
     Route::get('/getSocialAccountData', [SocialAccountsController::class, 'getSocialAccountData'])->name('getSocialAccountData');
     Route::delete('/deleteSocialAccount/{id}', [SocialAccountsController::class, 'deleteSocialAccount'])->name('deleteSocialAccount');
-    Route::get('/fetchSocialAccountData/{id}', [SocialAccountsController::class,'fetchSocialAccountData'])->name('fetchSocialAccountData');
-Route::post('/importCSV', [SocialAccountsController::class, 'importCSV'])
-    ->name('importCSV');
+    Route::get('/fetchSocialAccountData/{id}', [SocialAccountsController::class, 'fetchSocialAccountData'])->name('fetchSocialAccountData');
+    Route::post('/importCSV', [SocialAccountsController::class, 'importCSV'])
+        ->name('importCSV');
 
-   Route::post('/startAccount/{id}', [SocialAccountsController::class, 'startAccount'])->name('startAccount');
-Route::get('/runAccount/{id}', [SocialAccountsController::class, 'runAccount'])->name('runAccount');
-    //Proxy
+    Route::post('/startAccount/{id}', [SocialAccountsController::class, 'startAccount'])->name('startAccount');
+    Route::get('/runAccount/{id}', [SocialAccountsController::class, 'runAccount'])->name('runAccount');
+    Route::post('/stopAccount/{id}', [SocialAccountsController::class, 'stopAccount'])->name('stopAccount');
+    //stopAccount
     Route::get('/proxy', [ProxyController::class, 'index'])->name('proxy');
     Route::post('/createProxy', [ProxyController::class, 'createProxy'])->name(name: 'createProxy');
     Route::get('/getProxyData', [ProxyController::class, 'getProxyData'])->name('getProxyData');
@@ -51,10 +52,10 @@ Route::get('/runAccount/{id}', [SocialAccountsController::class, 'runAccount'])-
     Route::get('/getCaptchaSettingData', [CaptchaSettingsController::class, 'getCaptchaSettingData'])->name('getCaptchaSettingData');
     Route::delete('/deleteCaptchaSettingData/{id}', [CaptchaSettingsController::class, 'deleteCaptchaSettingData'])->name('deleteCaptchaSettingData');
     Route::get('/fetchCaptchaSettingData/{id}', [CaptchaSettingsController::class, 'fetchCaptchaSettingData'])->name('fetchCaptchaSettingData');
-   //Task
+    //Task
     Route::get('/task', [TaskController::class, 'index'])->name('task');
     Route::post('/createTask', [TaskController::class, 'createTask'])->name('createTask');
-    Route::get('/fetchTaskData/{id}', [TaskController::class,'fetchTaskData'])->name('fetchTaskData');
+    Route::get('/fetchTaskData/{id}', [TaskController::class, 'fetchTaskData'])->name('fetchTaskData');
     Route::get('/getTaskData', [TaskController::class, 'getTaskData'])->name('getTaskData');
     Route::delete('/deleteTask/{id}', [TaskController::class, 'deleteTask'])->name('deleteTask');
 
@@ -66,7 +67,7 @@ Route::get('/runAccount/{id}', [SocialAccountsController::class, 'runAccount'])-
     Route::delete('/deletePostContentData/{id}', [PostContentController::class, 'deletePostContentData'])->name('deletePostContentData');
 
     //Automation COntroller
-      Route::get('/auto-login', [AutomationController::class, 'autoLogin'])->name('auto-login');
+    Route::get('/auto-login', [AutomationController::class, 'autoLogin'])->name('auto-login');
     //proflie
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/saveUser', [ProfileController::class, 'saveUser'])->name('saveUser');

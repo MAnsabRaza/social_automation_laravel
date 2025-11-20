@@ -56,7 +56,8 @@ let SocialAccountController = function () {
         $("#cookies").val(elem.cookies);
         $("#account_phone").val(elem.account_phone);
         $("#warmup_level").val(elem.warmup_level);
-        $("#last_login").val(elem.last_login);
+        $("#last_login").val(elem.last_login.replace(" ", "T"));
+
     };
 
     // Fetch account for edit
@@ -111,6 +112,30 @@ let SocialAccountController = function () {
         }
         });
     }
+    const stopAccount=function(id){
+        $.ajax({  url: "/stopAccount/" + id,
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+        },
+        success: function (res) {
+            if (res.success) {
+                Toastify({
+                    text: "Account stopped successfully",
+                    backgroundColor: "#4BB543"
+                }).showToast();
+
+                table.ajax.reload();
+            }
+        },
+        error: function () {
+            Toastify({
+                text: "Failed to stop account",
+                backgroundColor: "#f44336"
+            }).showToast();
+        }
+        });
+    }
 
     // Delete account
     const deleteSocialAccount = function (id) {
@@ -161,6 +186,7 @@ let SocialAccountController = function () {
             { data: "account_username" },
             { data: "account_email" },
             { data: "account_password" },
+            { data: "last_login" },
             { data: "proxy_id" },
             {
                 data: "status",
@@ -244,6 +270,11 @@ let SocialAccountController = function () {
     $("#social_account_table").on("click", ".start-btn", function () {
         startAccount($(this).data("id"));
     });
+
+    $("#social_account_table").on("click", ".stop-btn", function () {
+        stopAccount($(this).data("id"));
+    });
+
     $("#social_account_table").on("click", ".edit-btn", function () {
         fetchSocialAccountData($(this).data("id"));
     });
