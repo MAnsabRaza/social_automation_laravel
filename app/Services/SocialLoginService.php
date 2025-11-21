@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use Facebook\WebDriver\Remote\LocalFileDetector;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\WebDriverBy;
 use Exception;
+use Facebook\WebDriver\WebDriverExpectedCondition;
 
 class SocialLoginService
 {
@@ -257,82 +259,75 @@ class SocialLoginService
     }
 
     //post create
-      public function postToInstagram($post)
+    public function postToInstagram($post)
     {
         try {
             // STEP 1: Open Instagram Upload Page
             $this->driver->get("https://www.instagram.com/create/select/");
-            sleep(4);
+
+            // Wait for the file input to appear
+            $wait = new \Facebook\WebDriver\WebDriverWait($this->driver, 15);
+            $fileInput = $wait->until(
+                WebDriverExpectedCondition::presenceOfElementLocated(
+                    WebDriverBy::cssSelector('input[type="file"]')
+                )
+            );
 
             // STEP 2: Upload Image
             $filePath = $this->saveBase64Image($post->media_urls);
-
-            $fileInput = $this->driver->findElement(
-                WebDriverBy::cssSelector('input[type="file"]')
-            );
-            $fileInput->setFileDetector(new \Facebook\WebDriver\Remote\LocalFileDetector());
+            $fileInput->setFileDetector(new LocalFileDetector());
             $fileInput->sendKeys($filePath);
 
-            sleep(5);
-
-            // STEP 3: Click FIRST NEXT
-            $next1 = $this->driver->findElement(
-                WebDriverBy::xpath("//button[contains(., 'Next')]")
+            // STEP 3: Click FIRST NEXT button
+            $next1 = $wait->until(
+                WebDriverExpectedCondition::elementToBeClickable(
+                    WebDriverBy::xpath("//button[contains(., 'Next')]")
+                )
             );
             $next1->click();
-            sleep(3);
 
-            // STEP 4: Click SECOND NEXT
-            $next2 = $this->driver->findElement(
-                WebDriverBy::xpath("//button[contains(., 'Next')]")
+            // STEP 4: Click SECOND NEXT button
+            $next2 = $wait->until(
+                WebDriverExpectedCondition::elementToBeClickable(
+                    WebDriverBy::xpath("//button[contains(., 'Next')]")
+                )
             );
             $next2->click();
-            sleep(3);
 
-            // STEP 5: Write Caption
-            $caption = $post->title . "\n\n" . $post->content . "\n\n" . $post->hashtags;
-
-            // Instagram caption textarea
-            $textarea = $this->driver->findElement(
-                WebDriverBy::cssSelector("textarea[aria-label='Write a caption…']")
-            );
-            $textarea->sendKeys($caption);
-
-            sleep(2);
-
-            // STEP 6: SHARE BUTTON (100% working version)
-
+          
+            // STEP 6: Click Share button
             $shareBtn = $this->findInstagramShareButton();
             if (!$shareBtn) {
-                throw new \Exception("Share button not found! IG UI changed again.");
+                throw new Exception("Share button not found! IG UI may have changed.");
             }
-
             $shareBtn->click();
-            sleep(6);
+
+            // Wait for a few seconds to ensure post is uploaded
+            sleep(5);
 
             return true;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
             // Save screenshot for debugging
             $this->driver->takeScreenshot(storage_path("app/public/instagram_error.png"));
-
             throw new Exception("Instagram Posting Failed: " . $e->getMessage());
         }
     }
+
     private function findInstagramShareButton()
-{
-    try {
-        // Try to find the Share/Publish button
-        return $this->driver->findElement(
-            WebDriverBy::xpath("//button[contains(., 'Share') or contains(., 'Publish')]")
-        );
-    } catch (\Exception $e) {
-        return null;
+    {
+        try {
+            $wait = new \Facebook\WebDriver\WebDriverWait($this->driver, 10);
+            return $wait->until(
+                WebDriverExpectedCondition::elementToBeClickable(
+                    WebDriverBy::xpath("//button[contains(., 'Share') or contains(., 'Publish')]")
+                )
+            );
+        } catch (Exception $e) {
+            return null;
+        }
     }
-}
-
-
 
     private function saveBase64Image($base64)
     {
@@ -344,5 +339,4 @@ class SocialLoginService
 
         return $filePath;
     }
-
 }
