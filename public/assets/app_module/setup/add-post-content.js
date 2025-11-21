@@ -38,10 +38,10 @@ let PostContentController = function () {
     const populateData = function (elem) {
         $("#current_date").val(elem.current_date);
         $("#post_content_id").val(elem.id);
+        $('#account_id').val(elem.account_id);
         $("#content").val(elem.content);
         $("#title").val(elem.title);
         $("#hashtags").val(elem.hashtags);
-        $("#category").val(elem.category);
         if (elem.media_urls) {
             $("#previewImage")
                 .attr("src", elem.media_urls)
@@ -159,7 +159,7 @@ let PostContentController = function () {
 
                     { data: "hashtags", name: "hashtags" },
 
-                    { data: "category", name: "category" },
+                    { data: "account_id", name: "account_id" },
                     {
                         data: null,
                         render: function (data, type, row) {

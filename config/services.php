@@ -36,7 +36,7 @@ return [
     ],
     //captcha
     'captcha' => [
-        'key' => env('CAPTCHA_API_KEY'),
+        'key' => env('CAPSOLVER_API_KEY'),
     ],
 
 ];

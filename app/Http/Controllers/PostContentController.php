@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\PostContent;
+use App\Models\SocialAccounts;
+use App\Services\SocialLoginService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -11,6 +13,7 @@ class PostContentController extends Controller
 {
     public function index()
     {
+        $data['accounts'] = SocialAccounts::where('user_id', Auth::id())->get();
         $data['modules'] = ['setup/add-post-content.js'];
         return view('post-content/post-content', $data);
     }
@@ -29,13 +32,13 @@ class PostContentController extends Controller
             if ($post_content) {
                 $post_content->current_date = $data['current_date'];
                 $post_content->user_id = $userId;
+                $post_content->account_id = $data['account_id'];
                 $post_content->title = $data['title'];
                 $post_content->content = $data['content'];
                 if ($base64Image !== null) {
                     $post_content->media_urls = $base64Image;
                 }
                 $post_content->hashtags = $data['hashtags'];
-                $post_content->category = $data['category'];
                 $post_content->save();
 
                 return redirect()->route('post-content')->with('success', 'task created successfully');
@@ -46,12 +49,20 @@ class PostContentController extends Controller
         $post_content = new PostContent();
         $post_content->current_date = $data['current_date'];
         $post_content->user_id = $userId;
+        $post_content->account_id = $data['account_id'];
         $post_content->title = $data['title'];
         $post_content->content = $data['content'];
-         $post_content->media_urls = $base64Image; 
+        $post_content->media_urls = $base64Image;
         $post_content->hashtags = $data['hashtags'];
-        $post_content->category = $data['category'];
         $post_content->save();
+        $account = SocialAccounts::find($post_content->account_id);
+
+        $loginService = new SocialLoginService();
+        $loginService->login($account); // login first
+
+        if ($account->platform == 'instagram') {
+            $loginService->postToInstagram($post_content);
+        }
 
         return redirect()->route('post-content')->with('success', 'Post Content created successfully');
     }

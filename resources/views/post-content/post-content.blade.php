@@ -22,89 +22,101 @@
         </div>
 
         <!-- FORM TAB -->
-        <div id="content-form">
+     <div id="content-form">
 
-            <form action="{{ route('createPostContent') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" name="id" id="post_content_id">
+    <form action="{{ route('createPostContent') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <input type="hidden" name="id" id="post_content_id">
 
-                <div class="shadow-lg rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100 p-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2">
-                                <i class="fas fa-pen-fancy text-blue-900"></i> Post Content Management
-                            </h2>
-                            <p class="text-gray-600 mt-1 text-sm">Add and manage post content account</p>
-                        </div>
-
-                        <div class="space-x-2">
-
-                            <!-- Save -->
-                            <button type="submit"
-                                class="px-5 py-2.5 rounded-xl text-white bg-green-600 hover:bg-green-700 shadow-md">
-                                <i class="fa-solid fa-save mr-2"></i> Save
-                            </button>
-
-                            <!-- Reset -->
-                            <button type="reset"
-                                class="px-5 py-2.5 rounded-xl text-gray-700 bg-yellow-300 hover:bg-yellow-400 shadow-md">
-                                <i class="fa-solid fa-rotate-right mr-2"></i> Reset
-                            </button>
-
-                            <!-- Refresh -->
-                            <button type="button" id="refresh-btn"
-                                class="px-5 py-2.5 rounded-xl text-white bg-purple-500 hover:bg-purple-600 shadow-md">
-                                <i class="fa-solid fa-arrows-rotate mr-2"></i> Refresh
-                            </button>
-
-                        </div>
-                    </div>
-                </div>
-                <!-- Section 1 -->
-                <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                        <div>
-                            <label class="font-semibold">Date</label>
-                            <input type="date" name="current_date" id="current_date"
-                                class="w-full p-2 border rounded-lg ts_datepicker">
-                        </div>
-                            <div>
-                            <label class="font-semibold">Title</label>
-                            <input type="text" name="title" id="title" required
-                                class="w-full p-2 border rounded-lg">
-                        </div>
-                        <div>
-                            <label class="font-semibold">Category</label>
-                            <input type="text" name="category" id="category" required
-                                class="w-full p-2 border rounded-lg">
-                        </div>
-
-                    </div>
+        <!-- Header Section -->
+        <div class="shadow-lg rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100 p-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2">
+                        <i class="fas fa-pen-fancy text-blue-900"></i> Post Content Management
+                    </h2>
+                    <p class="text-gray-600 mt-1 text-sm">Add and manage post content account</p>
                 </div>
 
-                <!-- Section 2 -->
-                <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="font-semibold">Content</label>
-                            <textarea name="content" id="content" class="w-full p-2 border rounded-lg" required></textarea>
-                        </div>
-                        <div class="mt-4">
-                            <label class="font-semibold">Media Url</label>
-                            <input type="file" name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg" required>
-                            <img id="previewImage" src="" class="w-32 h-32 mt-2 border hidden" />
+                <div class="space-x-2">
+                    <!-- Save -->
+                    <button type="submit"
+                        class="px-5 py-2.5 rounded-xl text-white bg-green-600 hover:bg-green-700 shadow-md">
+                        <i class="fa-solid fa-save mr-2"></i> Save
+                    </button>
 
-                        </div>
-                        <div class="mt-4">
-                            <label class="font-semibold">hashtags</label>
-                            <input type="text" name="hashtags" id="hashtags" required
-                                class="w-full p-2 border rounded-lg">
-                        </div>
-                    </div>
+                    <!-- Reset -->
+                    <button type="reset"
+                        class="px-5 py-2.5 rounded-xl text-gray-700 bg-yellow-300 hover:bg-yellow-400 shadow-md">
+                        <i class="fa-solid fa-rotate-right mr-2"></i> Reset
+                    </button>
+
+                    <!-- Refresh -->
+                    <button type="button" id="refresh-btn"
+                        class="px-5 py-2.5 rounded-xl text-white bg-purple-500 hover:bg-purple-600 shadow-md">
+                        <i class="fa-solid fa-arrows-rotate mr-2"></i> Refresh
+                    </button>
                 </div>
-            </form>
+            </div>
         </div>
+
+        <!-- Section 1 -->
+        <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <div>
+                    <label class="font-semibold">Date</label>
+                    <input type="date" name="current_date" id="current_date"
+                        class="w-full p-2 border rounded-lg ts_datepicker">
+                </div>
+
+                <div>
+                    <label class="font-semibold">Title</label>
+                    <input type="text" name="title" id="title" required
+                        class="w-full p-2 border rounded-lg">
+                </div>
+
+                <div>
+                    <label class="font-semibold">Account</label>
+                    <select name="account_id" id="account_id" class="w-full p-2 border rounded-lg" required>
+                        <option value="" disabled selected>Select Account</option>
+                        @foreach($accounts as $account)
+                            <option value="{{ $account->id }}">
+                                {{ $account->account_username }} - {{ $account->platform }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <div>
+                    <label class="font-semibold">Content</label>
+                    <textarea name="content" id="content" class="w-full p-2 border rounded-lg" required></textarea>
+                </div>
+
+                <div>
+                    <label class="font-semibold">Media Url</label>
+                    <input type="file" name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg" required>
+                    <img id="previewImage" src="" class="w-32 h-32 mt-2 border hidden" />
+                </div>
+
+                <div>
+                    <label class="font-semibold">Hashtags</label>
+                    <input type="text" name="hashtags" id="hashtags" required
+                        class="w-full p-2 border rounded-lg">
+                </div>
+
+            </div>
+        </div>
+
+    </form>
+</div>
 
         <!-- LIST TAB -->
         <div id="content-list" class="hidden p-6">
@@ -127,7 +139,7 @@
                             <th class="p-3">Content</th>
                             <th class="p-3">Media Url</th>
                             <th class="p-3">Hashtags</th>
-                            <th class="p-3">Category</th>
+                            <th class="p-3">Account</th>
                             <th class="p-3 text-center">Actions</th>
                         </tr>
                     </thead>

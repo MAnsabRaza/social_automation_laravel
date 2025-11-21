@@ -97,16 +97,18 @@ return new class extends Migration {
       $table->id();
       $table->date('current_date');
       $table->unsignedBigInteger('user_id');
+      
+      $table->unsignedBigInteger('account_id');
       $table->string('title', 255)->nullable();
       $table->text('content');
       $table->text('media_urls')->nullable();
       $table->text('hashtags')->nullable();
       $table->boolean('spintax_enabled')->default(false);
-      $table->string('category', 100)->nullable();
       $table->timestamps();
 
       // Foreign key
       $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+      $table->foreign('account_id')->references('id')->on('social_accounts')->onDelete('cascade');
     });
     //Account Group
     Schema::create('account_groups', function (Blueprint $table) {

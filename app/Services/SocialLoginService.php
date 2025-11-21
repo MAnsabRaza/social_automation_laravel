@@ -190,33 +190,64 @@ class SocialLoginService
             throw new \Exception("❌ TikTok Login Error: " . $e->getMessage());
         }
     }
-    // CAPTCHA SOLVER
     private function solveCaptcha()
     {
         try {
-            $iframe = $this->driver->findElement(
-                WebDriverBy::cssSelector('iframe[src*="recaptcha"]')
-            );
+            // Wait until iframe appears (max 15s)
+            $iframe = null;
+            for ($i = 0; $i < 15; $i++) {
+                try {
+                    $iframe = $this->driver->findElement(WebDriverBy::cssSelector('iframe[src*="recaptcha"]'));
+                    if ($iframe)
+                        break;
+                } catch (\Exception $e) {
+                    sleep(1);
+                }
+            }
+
+            if (!$iframe) {
+                throw new \Exception("No reCAPTCHA iframe found");
+            }
 
             $src = $iframe->getAttribute("src");
-
             preg_match('/k=([^&]+)/', $src, $matches);
             $siteKey = $matches[1];
-
             $pageUrl = $this->driver->getCurrentURL();
 
+            // Solve via CapSolver
             $token = CaptchaSolver::solveRecaptchaV2($siteKey, $pageUrl);
 
+            // Inject token into textarea
             $this->driver->executeScript("
-                document.getElementById('g-recaptcha-response').value = '{$token}';
-            ");
+            var textarea = document.querySelector('textarea#g-recaptcha-response');
+            if(textarea) {
+                textarea.style.display='block';
+                textarea.value = '{$token}';
+            }
+        ");
 
+            // Trigger the official callback
             $this->driver->executeScript("
-                document.querySelector('button[name=\"login\"]').click();
-            ");
+            if (window.grecaptcha && window.grecaptcha.getResponse) {
+                var cb = document.querySelector('textarea#g-recaptcha-response');
+                if(cb) {
+                    var event = new Event('change');
+                    cb.dispatchEvent(event);
+                }
+            }
+        ");
 
-        } catch (Exception $e) {
-            throw new Exception("CAPTCHA Solve Failed: " . $e->getMessage());
+            sleep(2);
+
+            // Click login button
+            $loginButton = $this->driver->findElement(
+                WebDriverBy::xpath("//button[contains(@name,'login') or contains(@type,'submit')]")
+            );
+            $loginButton->click();
+
+            sleep(5);
+        } catch (\Exception $e) {
+            throw new \Exception("CAPTCHA Solve Failed: " . $e->getMessage());
         }
     }
 
@@ -224,4 +255,94 @@ class SocialLoginService
     {
         $this->driver->quit();
     }
+
+    //post create
+      public function postToInstagram($post)
+    {
+        try {
+            // STEP 1: Open Instagram Upload Page
+            $this->driver->get("https://www.instagram.com/create/select/");
+            sleep(4);
+
+            // STEP 2: Upload Image
+            $filePath = $this->saveBase64Image($post->media_urls);
+
+            $fileInput = $this->driver->findElement(
+                WebDriverBy::cssSelector('input[type="file"]')
+            );
+            $fileInput->setFileDetector(new \Facebook\WebDriver\Remote\LocalFileDetector());
+            $fileInput->sendKeys($filePath);
+
+            sleep(5);
+
+            // STEP 3: Click FIRST NEXT
+            $next1 = $this->driver->findElement(
+                WebDriverBy::xpath("//button[contains(., 'Next')]")
+            );
+            $next1->click();
+            sleep(3);
+
+            // STEP 4: Click SECOND NEXT
+            $next2 = $this->driver->findElement(
+                WebDriverBy::xpath("//button[contains(., 'Next')]")
+            );
+            $next2->click();
+            sleep(3);
+
+            // STEP 5: Write Caption
+            $caption = $post->title . "\n\n" . $post->content . "\n\n" . $post->hashtags;
+
+            // Instagram caption textarea
+            $textarea = $this->driver->findElement(
+                WebDriverBy::cssSelector("textarea[aria-label='Write a caption…']")
+            );
+            $textarea->sendKeys($caption);
+
+            sleep(2);
+
+            // STEP 6: SHARE BUTTON (100% working version)
+
+            $shareBtn = $this->findInstagramShareButton();
+            if (!$shareBtn) {
+                throw new \Exception("Share button not found! IG UI changed again.");
+            }
+
+            $shareBtn->click();
+            sleep(6);
+
+            return true;
+
+        } catch (\Exception $e) {
+
+            // Save screenshot for debugging
+            $this->driver->takeScreenshot(storage_path("app/public/instagram_error.png"));
+
+            throw new Exception("Instagram Posting Failed: " . $e->getMessage());
+        }
+    }
+    private function findInstagramShareButton()
+{
+    try {
+        // Try to find the Share/Publish button
+        return $this->driver->findElement(
+            WebDriverBy::xpath("//button[contains(., 'Share') or contains(., 'Publish')]")
+        );
+    } catch (\Exception $e) {
+        return null;
+    }
+}
+
+
+
+    private function saveBase64Image($base64)
+    {
+        $fileData = explode(',', $base64);
+        $imageData = base64_decode($fileData[1]);
+
+        $filePath = storage_path('app/public/temp_' . time() . '.jpg');
+        file_put_contents($filePath, $imageData);
+
+        return $filePath;
+    }
+
 }
