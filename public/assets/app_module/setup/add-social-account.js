@@ -185,7 +185,6 @@ let SocialAccountController = function () {
             { data: "current_date" },
             { data: "account_username" },
             { data: "account_email" },
-            { data: "account_password" },
             { data: "last_login" },
             { data: "proxy_id" },
             {

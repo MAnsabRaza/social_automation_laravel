@@ -51,11 +51,7 @@
                         <i class="fa-solid fa-rotate-right mr-2"></i> Reset
                     </button>
 
-                    <!-- Refresh -->
-                    <button type="button" id="refresh-btn"
-                        class="px-5 py-2.5 rounded-xl text-white bg-purple-500 hover:bg-purple-600 shadow-md">
-                        <i class="fa-solid fa-arrows-rotate mr-2"></i> Refresh
-                    </button>
+                 
                 </div>
             </div>
         </div>
@@ -140,7 +136,6 @@
                             <th class="p-3">Media Url</th>
                             <th class="p-3">Hashtags</th>
                             <th class="p-3">Account</th>
-                            <th class="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -54,11 +54,7 @@
                                 <i class="fa-solid fa-rotate-right mr-2"></i> Reset
                             </button>
 
-                            <!-- Refresh -->
-                            <button type="button" id="refresh-btn"
-                                class="px-5 py-2.5 rounded-xl text-white bg-purple-500 hover:bg-purple-600 shadow-md">
-                                <i class="fa-solid fa-arrows-rotate mr-2"></i> Refresh
-                            </button>
+
 
                             <!-- Import CSV Button -->
                             <button type="button" id="importCsvBtn"
@@ -105,7 +101,7 @@
                                 @endforeach
                             </select>
                         </div>
-                     
+
                     </div>
                 </div>
 
@@ -140,7 +136,7 @@
                     </div>
                 </div>
 
-             
+
                 <!-- resources/views/social-account/social-account.blade.php mein form mein -->
                 <input type="hidden" name="cookies" value="">
                 <input type="hidden" name="auth_token" value="">
@@ -221,20 +217,19 @@
             </div>
 
             <!-- Table -->
-            <div class="overflow-auto mt-6 border rounded-lg">
-                <table class="table-auto w-full text-sm" id="social_account_table">
+            <div class="overflow-x-hidden mt-6 border rounded-lg">
+                <table class="table-fixed w-full text-sm" id="social_account_table">
                     <thead class="bg-blue-900 text-white">
                         <tr>
-                            <th class="p-3">ID</th>
-                            <th class="p-3">Date</th>
-                            <th class="p-3">User Name</th>
-                            <th class="p-3">Email</th>
-                            <th class="p-3">Password</th>
-                            <th class="p-3">Last Login</th>
-                            <th class="p-3">Proxy</th>
-                            <th class="p-3">Status</th>
-                            <th class="p-3">Platform</th>
-                            <th class="p-3 text-center">Actions</th>
+                            <th class="p-3 w-1">ID</th>
+                            <th class="p-3 w-10">Date</th>
+                            <th class="p-3 w-25">User Name</th>
+                            <th class="p-3 w-25">Email</th>
+                            <th class="p-3 w-10">Last Login</th>
+                            <th class="p-3 w-1">Proxy</th>
+                            <th class="p-3 w-10">Status</th>
+                            <th class="p-3 w-10">Platform</th>
+                            <th class="p-3 text-center w-20">Actions</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

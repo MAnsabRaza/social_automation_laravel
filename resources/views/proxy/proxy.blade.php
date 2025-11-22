@@ -50,10 +50,6 @@
                                 <i class="fa-solid fa-rotate-right mr-2"></i> Reset
                             </button>
 
-                            <button type="button" id="refresh-btn"
-                                class="px-5 py-2.5 rounded-xl text-white bg-purple-500 hover:bg-purple-600 shadow-md">
-                                <i class="fa-solid fa-arrows-rotate mr-2"></i> Refresh
-                            </button>
                         </div>
                     </div>
                 </div>

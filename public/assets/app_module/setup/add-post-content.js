@@ -160,17 +160,17 @@ let PostContentController = function () {
                     { data: "hashtags", name: "hashtags" },
 
                     { data: "account_id", name: "account_id" },
-                    {
-                        data: null,
-                        render: function (data, type, row) {
-                            return `
-                                <button class="edit-btn px-2 py-1 border border-blue-600 rounded text-blue-600 hover:bg-blue-600 hover:text-white" data-id="${row.id}"><i class="fa-solid fa-edit"></i></button>
-                                <button class="delete-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white" data-id="${row.id}"><i class="fa-solid fa-trash"></i></button>
-                            `;
-                        },
-                        orderable: false,
-                        searchable: false,
-                    },
+                    // {
+                    //     data: null,
+                    //     render: function (data, type, row) {
+                    //         return `
+                                
+                    //             <button class="delete-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white" data-id="${row.id}"><i class="fa-solid fa-trash"></i></button>
+                    //         `;
+                    //     },
+                    //     orderable: false,
+                    //     searchable: false,
+                    // },
                 ],
             });
 

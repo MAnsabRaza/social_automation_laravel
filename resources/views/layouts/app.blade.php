@@ -20,6 +20,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            overflow-x: hidden !important;
         }
 
         /* Sidebar */
