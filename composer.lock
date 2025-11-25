@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "43965f6fbf823ca9e849bea927a6f3d3",
+    "content-hash": "ffc98bf2b351472845dc4df695628401",
     "packages": [
         {
             "name": "brick/math",
@@ -2190,6 +2190,65 @@
                 }
             ],
             "time": "2024-12-08T08:18:47+00:00"
+        },
+        {
+            "name": "mailslurp/mailslurp-client-php",
+            "version": "17.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mailslurp/mailslurp-client-php.git",
+                "reference": "71e4e1c95e7582e13f8e7b665788bcd9b139ec8a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mailslurp/mailslurp-client-php/zipball/71e4e1c95e7582e13f8e7b665788bcd9b139ec8a",
+                "reference": "71e4e1c95e7582e13f8e7b665788bcd9b139ec8a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "guzzlehttp/guzzle": "^7.3",
+                "guzzlehttp/psr7": "^1.7 || ^2.0",
+                "php": "^7.4 || ^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.5",
+                "phpunit/phpunit": "^8.0 || ^9.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MailSlurp\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "unlicense"
+            ],
+            "authors": [
+                {
+                    "name": "MailSlurp",
+                    "homepage": "https://www.mailslurp.com"
+                }
+            ],
+            "description": "MailSlurp is an API for sending and receiving emails and SMS from dynamically allocated email addresses and phone numbers. It's designed for developers and QA teams to test applications, process inbound emails, send templated notifications, attachments, and more.  ## Resources  - [Homepage](https://www.mailslurp.com) - Get an [API KEY](https://app.mailslurp.com/sign-up/) - Generated [SDK Clients](https://docs.mailslurp.com/) - [Examples](https://github.com/mailslurp/examples) repository",
+            "homepage": "https://www.mailslurp.com",
+            "keywords": [
+                "api",
+                "openapi",
+                "openapi-generator",
+                "openapitools",
+                "php",
+                "rest",
+                "sdk"
+            ],
+            "support": {
+                "issues": "https://github.com/mailslurp/mailslurp-client-php/issues",
+                "source": "https://github.com/mailslurp/mailslurp-client-php/tree/17.0.0"
+            },
+            "time": "2025-08-13T10:20:41+00:00"
         },
         {
             "name": "monolog/monolog",
