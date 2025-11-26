@@ -60,14 +60,9 @@ class PostContentController extends Controller
         $loginService = new SocialLoginService();
         $loginService->login($account); // login first
 
-        if ($account->platform == 'facebook') {
-            $loginService->postToFacebook($post_content);
-        }
+      
         if ($account->platform == 'instagram') {
             $loginService->postToInstagram($post_content);
-        }
-        if ($account->platform == 'linkedin') {
-            $loginService->postToLinkedIn($post_content);
         }
 
         return redirect()->route('post-content')->with('success', 'Post Content created successfully');

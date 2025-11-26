@@ -259,6 +259,7 @@ class SocialLoginService
     }
 
     //post create Instagram
+
     public function postToInstagram($post)
     {
         try {
@@ -294,23 +295,26 @@ class SocialLoginService
             );
             $next2->click();
 
-
-            // STEP 6: Click Share button
+            // STEP 6: Click Share/Publish button
             $shareBtn = $this->findInstagramShareButton();
+
             if (!$shareBtn) {
                 throw new Exception("Share button not found! IG UI may have changed.");
             }
+
             $shareBtn->click();
 
-            // Wait for a few seconds to ensure post is uploaded
+            // Wait to ensure upload is completed
             sleep(5);
 
             return true;
 
         } catch (Exception $e) {
-
             // Save screenshot for debugging
-            $this->driver->takeScreenshot(storage_path("app/public/instagram_error.png"));
+            $this->driver->takeScreenshot(
+                storage_path("app/public/instagram_error.png")
+            );
+
             throw new Exception("Instagram Posting Failed: " . $e->getMessage());
         }
     }
@@ -319,6 +323,7 @@ class SocialLoginService
     {
         try {
             $wait = new \Facebook\WebDriver\WebDriverWait($this->driver, 10);
+
             return $wait->until(
                 WebDriverExpectedCondition::elementToBeClickable(
                     WebDriverBy::xpath("//button[contains(., 'Share') or contains(., 'Publish')]")
@@ -520,78 +525,78 @@ class SocialLoginService
     }
     //Post in facebook
     public function postToFacebook($post)
-{
-    try {
+    {
+        try {
 
-        $this->driver->get("https://www.facebook.com/creatorstudio");
-        sleep(6);
+            $this->driver->get("https://www.facebook.com/creatorstudio");
+            sleep(6);
 
-        $wait = new \Facebook\WebDriver\WebDriverWait($this->driver, 20);
+            $wait = new \Facebook\WebDriver\WebDriverWait($this->driver, 20);
 
-        // 1️⃣ CLICK CREATE POST BUTTON
-        $createPostBtn = $wait->until(
-            WebDriverExpectedCondition::elementToBeClickable(
-                WebDriverBy::xpath("//span[contains(text(), 'Create Post') or contains(text(),'Create new')]")
-            )
-        );
-        $createPostBtn->click();
-        sleep(3);
+            // 1️⃣ CLICK CREATE POST BUTTON
+            $createPostBtn = $wait->until(
+                WebDriverExpectedCondition::elementToBeClickable(
+                    WebDriverBy::xpath("//span[contains(text(), 'Create Post') or contains(text(),'Create new')]")
+                )
+            );
+            $createPostBtn->click();
+            sleep(3);
 
-        // 2️⃣ SELECT "Facebook Page Post"
-        $fbPostBtn = $wait->until(
-            WebDriverExpectedCondition::elementToBeClickable(
-                WebDriverBy::xpath("//span[contains(text(), 'Facebook Page') or contains(text(), 'Post')]")
-            )
-        );
-        $fbPostBtn->click();
-        sleep(3);
+            // 2️⃣ SELECT "Facebook Page Post"
+            $fbPostBtn = $wait->until(
+                WebDriverExpectedCondition::elementToBeClickable(
+                    WebDriverBy::xpath("//span[contains(text(), 'Facebook Page') or contains(text(), 'Post')]")
+                )
+            );
+            $fbPostBtn->click();
+            sleep(3);
 
-        // 3️⃣ FILL TEXT CONTENT
-        $textBox = $wait->until(
-            WebDriverExpectedCondition::presenceOfElementLocated(
-                WebDriverBy::xpath("//div[@contenteditable='true']")
-            )
-        );
-
-        $textBox->sendKeys($post->content . "\n\n" . $post->hashtags);
-        sleep(2);
-
-        // 4️⃣ UPLOAD IMAGE (if available)
-        if (!empty($post->media_urls)) {
-
-            $filePath = $this->saveBase64Image($post->media_urls);
-
-            $fileInput = $wait->until(
+            // 3️⃣ FILL TEXT CONTENT
+            $textBox = $wait->until(
                 WebDriverExpectedCondition::presenceOfElementLocated(
-                    WebDriverBy::xpath("//input[@type='file']")
+                    WebDriverBy::xpath("//div[@contenteditable='true']")
                 )
             );
 
-            $fileInput->setFileDetector(new LocalFileDetector());
-            $fileInput->sendKeys($filePath);
+            $textBox->sendKeys($post->content . "\n\n" . $post->hashtags);
+            sleep(2);
 
-            sleep(5); // wait until image preview loads
+            // 4️⃣ UPLOAD IMAGE (if available)
+            if (!empty($post->media_urls)) {
+
+                $filePath = $this->saveBase64Image($post->media_urls);
+
+                $fileInput = $wait->until(
+                    WebDriverExpectedCondition::presenceOfElementLocated(
+                        WebDriverBy::xpath("//input[@type='file']")
+                    )
+                );
+
+                $fileInput->setFileDetector(new LocalFileDetector());
+                $fileInput->sendKeys($filePath);
+
+                sleep(5); // wait until image preview loads
+            }
+
+            // 5️⃣ CLICK PUBLISH BUTTON
+            $publishBtn = $wait->until(
+                WebDriverExpectedCondition::elementToBeClickable(
+                    WebDriverBy::xpath("//span[contains(text(), 'Publish')]")
+                )
+            );
+
+            $publishBtn->click();
+
+            sleep(6); // wait to finish
+
+            return true;
+
+        } catch (\Exception $e) {
+
+            $this->driver->takeScreenshot(storage_path("app/public/facebook_error_" . time() . ".png"));
+            throw new \Exception("Facebook Post Failed: " . $e->getMessage());
         }
-
-        // 5️⃣ CLICK PUBLISH BUTTON
-        $publishBtn = $wait->until(
-            WebDriverExpectedCondition::elementToBeClickable(
-                WebDriverBy::xpath("//span[contains(text(), 'Publish')]")
-            )
-        );
-
-        $publishBtn->click();
-
-        sleep(6); // wait to finish
-
-        return true;
-
-    } catch (\Exception $e) {
-
-        $this->driver->takeScreenshot(storage_path("app/public/facebook_error_" . time() . ".png"));
-        throw new \Exception("Facebook Post Failed: " . $e->getMessage());
     }
-}
 
 
 }
