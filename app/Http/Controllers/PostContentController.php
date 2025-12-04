@@ -58,11 +58,13 @@ class PostContentController extends Controller
         $account = SocialAccounts::find($post_content->account_id);
 
         $loginService = new SocialLoginService();
-        $loginService->login($account); // login first
+        $loginService->login($account);
 
       
         if ($account->platform == 'instagram') {
             $loginService->postToInstagram($post_content);
+        }else if( $account->platform == 'facebook') {
+            $loginService->postToFacebook($post_content);
         }
 
         return redirect()->route('post-content')->with('success', 'Post Content created successfully');
