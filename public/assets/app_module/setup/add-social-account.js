@@ -57,7 +57,6 @@ let SocialAccountController = function () {
         $("#account_phone").val(elem.account_phone);
         $("#warmup_level").val(elem.warmup_level);
         $("#last_login").val(elem.last_login.replace(" ", "T"));
-
     };
 
     // Fetch account for edit
@@ -89,53 +88,57 @@ let SocialAccountController = function () {
         });
     };
 
-    const startAccount=function(id){
+    const startAccount = function (id) {
         $.ajax({
-        url: "/startAccount/" + id,
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
-        },
-        success: function (res) {
-            if (res.success) {
-                Toastify({
-                    text: "Starting... Opening new tab",
-                    backgroundColor: "#4BB543"
-                }).showToast();
-                window.open(`/runAccount/${id}`, "_blank");
+            url: "/startAccount/" + id,
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            },
+            success: function (res) {
+                if (res.success) {
+                    Toastify({
+                        text: "Starting Instagram login...",
+                        backgroundColor: "#4BB543",
+                    }).showToast();
 
-                table.ajax.reload();
-            }
-        },
-        error: function () {
-            Toastify({ text: "Failed to start", backgroundColor: "#f44336" }).showToast();
-        }
-        });
-    }
-    const stopAccount=function(id){
-        $.ajax({  url: "/stopAccount/" + id,
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
-        },
-        success: function (res) {
-            if (res.success) {
+                    table.ajax.reload();
+                }
+            },
+            error: function () {
                 Toastify({
-                    text: "Account stopped successfully",
-                    backgroundColor: "#4BB543"
+                    text: "Failed to start",
+                    backgroundColor: "#f44336",
                 }).showToast();
-
-                table.ajax.reload();
-            }
-        },
-        error: function () {
-            Toastify({
-                text: "Failed to stop account",
-                backgroundColor: "#f44336"
-            }).showToast();
-        }
+            },
         });
-    }
+    };
+
+    const stopAccount = function (id) {
+        $.ajax({
+            url: "/stopAccount/" + id,
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            },
+            success: function (res) {
+                if (res.success) {
+                    Toastify({
+                        text: "Account stopped successfully",
+                        backgroundColor: "#4BB543",
+                    }).showToast();
+
+                    table.ajax.reload();
+                }
+            },
+            error: function () {
+                Toastify({
+                    text: "Failed to stop account",
+                    backgroundColor: "#f44336",
+                }).showToast();
+            },
+        });
+    };
 
     // Delete account
     const deleteSocialAccount = function (id) {

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 ;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Http;
 
 class SocialAccountsController extends Controller
 {
@@ -172,37 +173,62 @@ class SocialAccountsController extends Controller
 
         return view('social-account/social-account-run', compact('account', 'url', 'cookies'));
     }
+
     public function startAccount($id)
     {
-        $account = SocialAccounts::findOrFail($id);
-
+        $account = SocialAccounts::with('proxy')->findOrFail($id);
         $account->status = 'inprogress';
         $account->save();
 
-        $loginService = new SocialLoginService();
+        $proxy = $account->proxy;
 
-        try {
-            $loginService->login($account);
-        } catch (\Exception $e) {
-            $account->status = 'error';
-            $account->save();
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]);
-        }
-        $account->status = 'inprogress';
-        $account->save();
+        $response = Http::post('http://localhost:3000/login-social', [
+            'username' => $account->account_username,
+            'password' => $account->account_password,
+            'platform' => $account->platform,
+            'proxy_host' => $proxy->proxy_host ?? null,
+            'proxy_port' => $proxy->proxy_port ?? null,
+            'proxy_username' => $proxy->proxy_username ?? null,
+            'proxy_password' => $proxy->proxy_password ?? null,
+        ]);
 
-        return response()->json(['success' => true]);
+        return response()->json($response->json());
     }
+
+
+
+
+    // public function startAccount($id)
+    // {
+    //     $account = SocialAccounts::findOrFail($id);
+
+    //     $account->status = 'inprogress';
+    //     $account->save();
+
+    //     $loginService = new SocialLoginService();
+
+    //     try {
+    //         $loginService->login($account);
+    //     } catch (\Exception $e) {
+    //         $account->status = 'error';
+    //         $account->save();
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $e->getMessage()
+    //         ]);
+    //     }
+    //     $account->status = 'inprogress';
+    //     $account->save();
+
+    //     return response()->json(['success' => true]);
+    // }
     public function stopAccount($id)
     {
         $account = SocialAccounts::findOrFail($id);
 
         // If you are running ChromeDriver via server-side service, terminate it here
         // For now, just update status
-        $account->last_login= Carbon::now();
+        $account->last_login = Carbon::now();
         $account->status = 'complete';
         $account->save();
 
