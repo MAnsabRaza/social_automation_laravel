@@ -56,7 +56,9 @@ let SocialAccountController = function () {
         $("#cookies").val(elem.cookies);
         $("#account_phone").val(elem.account_phone);
         $("#warmup_level").val(elem.warmup_level);
-        $("#last_login").val(elem.last_login.replace(" ", "T"));
+        if (elem.last_login) {
+            $("#last_login").val(elem.last_login.replace(" ", "T"));
+        }
     };
 
     // Fetch account for edit
@@ -76,6 +78,7 @@ let SocialAccountController = function () {
                     Toastify({
                         text: res.message || "Not found",
                         backgroundColor: "#f44336",
+                        duration: 3000
                     }).showToast();
                 }
             },
@@ -83,12 +86,19 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Error loading data",
                     backgroundColor: "#f44336",
+                    duration: 3000
                 }).showToast();
             },
         });
     };
 
-    const startAccount = function (id) {
+    // ========== ENHANCED START ACCOUNT WITH SESSION SAVING ==========
+    const startAccount = function (id, $button) {
+        // Disable button and show loading
+        if ($button) {
+            $button.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i>');
+        }
+
         $.ajax({
             url: "/startAccount/" + id,
             method: "POST",
@@ -98,17 +108,71 @@ let SocialAccountController = function () {
             success: function (res) {
                 if (res.success) {
                     Toastify({
-                        text: "Starting Instagram login...",
+                        text: "✅ Login successful! Session saved.",
                         backgroundColor: "#4BB543",
+                        duration: 3000
                     }).showToast();
 
-                    table.ajax.reload();
+                    // Reload table to show updated status
+                    table.ajax.reload(null, false);
+                } else {
+                    Toastify({
+                        text: "❌ Login failed: " + (res.message || 'Unknown error'),
+                        backgroundColor: "#f44336",
+                        duration: 4000
+                    }).showToast();
+                }
+                
+                // Re-enable button
+                if ($button) {
+                    $button.prop('disabled', false).html('<i class="fa-solid fa-play"></i>');
+                }
+            },
+            error: function (xhr) {
+                Toastify({
+                    text: "❌ Request failed. Please try again.",
+                    backgroundColor: "#f44336",
+                    duration: 3000
+                }).showToast();
+                
+                // Re-enable button
+                if ($button) {
+                    $button.prop('disabled', false).html('<i class="fa-solid fa-play"></i>');
+                }
+            },
+        });
+    };
+
+    // ========== CHECK ACCOUNT STATUS ==========
+    const checkAccountStatus = function (id) {
+        $.ajax({
+            url: "/checkAccountStatus/" + id,
+            method: "GET",
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            },
+            success: function (res) {
+                if (res.success) {
+                    const statusText = res.is_logged_in 
+                        ? "✅ Account is logged in (Session active)" 
+                        : "⚠️ Account session expired";
+                    
+                    const lastLogin = res.last_login 
+                        ? new Date(res.last_login).toLocaleString() 
+                        : "Never";
+                    
+                    Toastify({
+                        text: `${statusText}\nLast login: ${lastLogin}`,
+                        backgroundColor: res.is_logged_in ? "#4BB543" : "#FFA500",
+                        duration: 5000
+                    }).showToast();
                 }
             },
             error: function () {
                 Toastify({
-                    text: "Failed to start",
+                    text: "Failed to check status",
                     backgroundColor: "#f44336",
+                    duration: 3000
                 }).showToast();
             },
         });
@@ -126,6 +190,7 @@ let SocialAccountController = function () {
                     Toastify({
                         text: "Account stopped successfully",
                         backgroundColor: "#4BB543",
+                        duration: 3000
                     }).showToast();
 
                     table.ajax.reload();
@@ -135,6 +200,7 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Failed to stop account",
                     backgroundColor: "#f44336",
+                    duration: 3000
                 }).showToast();
             },
         });
@@ -154,6 +220,7 @@ let SocialAccountController = function () {
                     Toastify({
                         text: res.message,
                         backgroundColor: "#4BB543",
+                        duration: 3000
                     }).showToast();
                     table.ajax.reload();
                 }
@@ -162,6 +229,7 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Delete failed",
                     backgroundColor: "#f44336",
+                    duration: 3000
                 }).showToast();
             },
         });
@@ -172,7 +240,7 @@ let SocialAccountController = function () {
     const today = new Date().toISOString().split("T")[0];
     $("#current_date").val(today);
 
-    // Initialize DataTable
+    // ========== ENHANCED DATATABLE WITH SESSION INDICATORS ==========
     table = $("#social_account_table").DataTable({
         autoWidth: false,
         processing: true,
@@ -180,7 +248,7 @@ let SocialAccountController = function () {
         ajax: {
             url: "/getSocialAccountData",
             data: function (d) {
-                d.platform = platformFilter; // send current filter to backend
+                d.platform = platformFilter;
             },
         },
         columns: [
@@ -188,12 +256,44 @@ let SocialAccountController = function () {
             { data: "current_date" },
             { data: "account_username" },
             { data: "account_email" },
-            { data: "last_login" },
+            {
+                data: "last_login",
+                render: function (data, type, row) {
+                    if (!data) return '<span class="text-gray-400 text-xs">Never</span>';
+                    
+                    const loginDate = new Date(data);
+                    const now = new Date();
+                    const hoursDiff = Math.floor((now - loginDate) / (1000 * 60 * 60));
+                    
+                    let statusIcon = '';
+                    let statusClass = '';
+                    
+                    if (hoursDiff < 24) {
+                        statusIcon = '🟢';
+                        statusClass = 'text-green-600';
+                    } else {
+                        statusIcon = '🔴';
+                        statusClass = 'text-red-600';
+                    }
+                    
+                    return `<span class="${statusClass} text-xs">${statusIcon} ${loginDate.toLocaleString()}</span>`;
+                }
+            },
             { data: "proxy_id" },
             {
                 data: "status",
                 render: function (data) {
                     const map = {
+                        active: {
+                            bg: "bg-green-100",
+                            text: "text-green-800",
+                            label: "Active",
+                        },
+                        inactive: {
+                            bg: "bg-gray-100",
+                            text: "text-gray-800",
+                            label: "Inactive",
+                        },
                         inprogress: {
                             bg: "bg-yellow-100",
                             text: "text-orange-800",
@@ -209,6 +309,11 @@ let SocialAccountController = function () {
                             text: "text-red-800",
                             label: "Error",
                         },
+                        failed: {
+                            bg: "bg-red-100",
+                            text: "text-red-800",
+                            label: "Failed",
+                        },
                         pending: {
                             bg: "bg-yellow-100",
                             text: "text-yellow-800",
@@ -220,7 +325,7 @@ let SocialAccountController = function () {
                         text: "text-gray-800",
                         label: data || "Unknown",
                     };
-                    return `<span class="${s.bg} ${s.text} px-2 py-1 rounded text-sm font-semibold">${s.label}</span>`;
+                    return `<span class="${s.bg} ${s.text} px-2 py-1 rounded text-xs font-semibold">${s.label}</span>`;
                 },
             },
             { data: "platform" },
@@ -230,16 +335,29 @@ let SocialAccountController = function () {
                 render: function (data, type, row) {
                     return `
                         <div class="flex gap-1 justify-center">
-                            <button class="start-btn px-2 py-1 border border-green-600 rounded text-green-600 hover:bg-green-600 hover:text-white text-xs" data-id="${row.id}">
+                            <button class="start-btn px-2 py-1 border border-green-600 rounded text-green-600 hover:bg-green-600 hover:text-white text-xs" 
+                                    data-id="${row.id}" 
+                                    title="Login & Save Session">
                                 <i class="fa-solid fa-play"></i>
                             </button>
-                            <button class="stop-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white text-xs" data-id="${row.id}">
+                            <button class="check-status-btn px-2 py-1 border border-blue-600 rounded text-blue-600 hover:bg-blue-600 hover:text-white text-xs" 
+                                    data-id="${row.id}"
+                                    title="Check Login Status">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </button>
+                            <button class="stop-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white text-xs" 
+                                    data-id="${row.id}"
+                                    title="Stop Account">
                                 <i class="fa-solid fa-stop"></i>
                             </button>
-                            <button class="edit-btn px-2 py-1 border border-blue-600 rounded text-blue-600 hover:bg-blue-600 hover:text-white text-xs" data-id="${row.id}">
+                            <button class="edit-btn px-2 py-1 border border-yellow-600 rounded text-yellow-600 hover:bg-yellow-600 hover:text-white text-xs" 
+                                    data-id="${row.id}"
+                                    title="Edit Account">
                                 <i class="fa-solid fa-edit"></i>
                             </button>
-                            <button class="delete-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white text-xs" data-id="${row.id}">
+                            <button class="delete-btn px-2 py-1 border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white text-xs" 
+                                    data-id="${row.id}"
+                                    title="Delete Account">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>`;
@@ -268,9 +386,19 @@ let SocialAccountController = function () {
         table.ajax.reload();
     });
 
-    // Other event listeners
+    // ========== EVENT LISTENERS ==========
+    
+    // Start button with enhanced session saving
     $("#social_account_table").on("click", ".start-btn", function () {
-        startAccount($(this).data("id"));
+        const accountId = $(this).data("id");
+        const $button = $(this);
+        startAccount(accountId, $button);
+    });
+
+    // Check status button
+    $("#social_account_table").on("click", ".check-status-btn", function () {
+        const accountId = $(this).data("id");
+        checkAccountStatus(accountId);
     });
 
     $("#social_account_table").on("click", ".stop-btn", function () {
@@ -301,23 +429,52 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Saved successfully!",
                     backgroundColor: "#4BB543",
+                    duration: 3000
                 }).showToast();
 
                 table.ajax.reload();
                 $("#socialAccountForm")[0].reset();
                 $("#social_account_id").val("");
                 $("#current_date").val(today);
-                showListTab(); // your function to switch tab
+                showListTab();
             },
             error: function (err) {
                 Toastify({
                     text: err.responseJSON?.message || "An error occurred",
                     backgroundColor: "#f44336",
+                    duration: 3000
                 }).showToast();
             },
         });
     });
+
+    // ========== POST CONTENT FORM WITH SESSION CHECK ==========
+    $("#postContentForm").on("submit", function(e) {
+        const accountId = $("#account_id").val();
+        
+        if (!accountId) {
+            e.preventDefault();
+            Toastify({
+                text: "⚠️ Please select an account",
+                backgroundColor: "#FFA500",
+                duration: 3000
+            }).showToast();
+            return false;
+        }
+        
+        // Show loading indicator
+        const $submitBtn = $(this).find('button[type="submit"]');
+        const originalText = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Publishing...');
+        
+        // Re-enable after 2 seconds (will be handled by page reload/redirect)
+        setTimeout(() => {
+            $submitBtn.prop('disabled', false).html(originalText);
+        }, 120000); // 2 minutes timeout
+    });
 };
 
-const socialAccount = new SocialAccountController();
-socialAccount.init();
+// Initialize the controller
+$(document).ready(function() {
+    const socialAccount = new SocialAccountController();
+});

@@ -40,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/startAccount/{id}', [SocialAccountsController::class, 'startAccount'])->name('startAccount');
     Route::get('/runAccount/{id}', [SocialAccountsController::class, 'runAccount'])->name('runAccount');
     Route::post('/stopAccount/{id}', [SocialAccountsController::class, 'stopAccount'])->name('stopAccount');
+     Route::get('/checkAccountStatus/{id}', [SocialAccountsController::class, 'checkAccountStatus'])
+        ->name('checkAccountStatus');
     //stopAccount
     Route::get('/proxy', [ProxyController::class, 'index'])->name('proxy');
     Route::post('/createProxy', [ProxyController::class, 'createProxy'])->name(name: 'createProxy');

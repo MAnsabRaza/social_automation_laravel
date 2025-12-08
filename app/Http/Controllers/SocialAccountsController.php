@@ -182,19 +182,58 @@ class SocialAccountsController extends Controller
 
         $proxy = $account->proxy;
 
-        $response = Http::post('http://localhost:3000/login-social', [
+        $response = Http::timeout(120)->post('http://localhost:3000/login-social', [
             'username' => $account->account_username,
             'password' => $account->account_password,
             'platform' => $account->platform,
+            'account_id' => $account->id,
             'proxy_host' => $proxy->proxy_host ?? null,
             'proxy_port' => $proxy->proxy_port ?? null,
             'proxy_username' => $proxy->proxy_username ?? null,
             'proxy_password' => $proxy->proxy_password ?? null,
         ]);
 
-        return response()->json($response->json());
+        $result = $response->json();
+
+        if (isset($result['success']) && $result['success']) {
+            // Save cookies, auth token, and session data
+            $account->cookies = $result['cookies'] ?? null;
+            $account->auth_token = $result['authToken'] ?? null;
+            $account->session_data = $result['sessionData'] ?? null;
+            $account->last_login = now();
+            $account->status = 'active';
+            $account->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful and session saved'
+            ]);
+        } else {
+            $account->status = 'failed';
+            $account->save();
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'] ?? 'Login failed'
+            ]);
+        }
     }
 
+    public function checkAccountStatus($id)
+    {
+        $account = SocialAccounts::findOrFail($id);
+        
+        $isLoggedIn = $account->cookies && 
+                     $account->last_login && 
+                     $account->last_login->diffInHours(now()) < 24;
+
+        return response()->json([
+            'success' => true,
+            'is_logged_in' => $isLoggedIn,
+            'last_login' => $account->last_login,
+            'status' => $account->status
+        ]);
+    }
 
 
 

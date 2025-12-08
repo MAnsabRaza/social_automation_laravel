@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class PostContentController extends Controller
 {
@@ -61,7 +63,7 @@ class PostContentController extends Controller
     //     $loginService = new SocialLoginService();
     //     $loginService->login($account);
 
-      
+
     //     if ($account->platform == 'instagram') {
     //         $loginService->postToInstagram($post_content);
     //     }else if( $account->platform == 'facebook') {
@@ -92,39 +94,99 @@ class PostContentController extends Controller
             $post_content = new PostContent();
         }
 
-        $post_content->current_date = $data['current_date'];
+        $post_content->current_date = $data['current_date'] ?? now();
         $post_content->user_id = $userId;
         $post_content->account_id = $data['account_id'];
         $post_content->title = $data['title'];
         $post_content->content = $data['content'];
         $post_content->media_urls = $base64Image;
-        $post_content->hashtags = $data['hashtags'];
+        $post_content->hashtags = $data['hashtags'] ?? '';
         $post_content->save();
 
         $account = SocialAccounts::with('proxy')->find($post_content->account_id);
 
-        // Call Node.js API to login and post
+        if (!$account) {
+            return redirect()->route('post-content')->with('error', 'Account not found');
+        }
+
+        // Check if account has valid session
+        $isSessionValid = false;
+
+        if ($account->cookies && $account->session_data && $account->last_login) {
+            try {
+                // Ensure last_login is a Carbon instance
+                $lastLogin = $account->last_login instanceof Carbon
+                    ? $account->last_login
+                    : Carbon::parse($account->last_login);
+
+                // Check if logged in within last 24 hours
+                $hoursAgo = $lastLogin->diffInHours(now());
+                $isSessionValid = $hoursAgo < 24;
+
+                Log::info("Session check for account {$account->id}: Last login {$hoursAgo} hours ago, Valid: " . ($isSessionValid ? 'Yes' : 'No'));
+            } catch (\Exception $e) {
+                Log::error("Error checking session validity: " . $e->getMessage());
+                $isSessionValid = false;
+            }
+        }
+
         $proxy = $account->proxy;
 
-        $response = Http::post('http://localhost:3000/post-social', [
-            'username' => $account->account_username,
-            'password' => $account->account_password,
+        // Prepare post data
+        $postData = [
             'platform' => $account->platform,
+            'content' => $post_content->content,
+            'image' => $base64Image,
+            'hashtags' => $post_content->hashtags,
             'proxy_host' => $proxy->proxy_host ?? null,
             'proxy_port' => $proxy->proxy_port ?? null,
             'proxy_username' => $proxy->proxy_username ?? null,
             'proxy_password' => $proxy->proxy_password ?? null,
-            'content' => $post_content->content,
-            'image' => $base64Image,
-            'hashtags' => $post_content->hashtags,
-        ]);
+        ];
 
-        $res = $response->json();
+        // If session is valid, use saved cookies/session
+        if ($isSessionValid) {
+            $postData['cookies'] = $account->cookies;
+            $postData['sessionData'] = $account->session_data;
+            $postData['authToken'] = $account->auth_token;
 
-        if ($res['success']) {
-            return redirect()->route('post-content')->with('success', 'Post created and published successfully');
+            Log::info("✅ Using saved session for account: " . $account->id);
         } else {
-            return redirect()->route('post-content')->with('error', 'Post saved but failed to publish: ' . $res['message']);
+            // Session expired or doesn't exist, use credentials
+            $postData['username'] = $account->account_username;
+            $postData['password'] = $account->account_password;
+
+            Log::info("🔑 Session expired or not found, using credentials for account: " . $account->id);
+        }
+
+        try {
+            $response = Http::timeout(120)->post('http://localhost:3000/post-social', $postData);
+            $res = $response->json();
+
+            if (isset($res['success']) && $res['success']) {
+                // Update post status
+                $post_content->status = 'published';
+                $post_content->published_at = now();
+                $post_content->save();
+
+                // Update account activity
+                $account->daily_actions_count = ($account->daily_actions_count ?? 0) + 1;
+                $account->save();
+
+                return redirect()->route('post-content')->with('success', 'Post created and published successfully');
+            } else {
+                $post_content->status = 'failed';
+                $post_content->save();
+
+                return redirect()->route('post-content')->with('error', 'Post saved but failed to publish: ' . ($res['message'] ?? 'Unknown error'));
+            }
+        } catch (\Exception $e) {
+            Log::error("Error posting content: " . $e->getMessage());
+
+            $post_content->status = 'failed';
+            $post_content->save();
+
+            return redirect()->route('post-content')->with('error', 'Post saved but failed to publish: ' . $e->getMessage());
         }
     }
     public function getPostContentData()
