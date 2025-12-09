@@ -234,10 +234,10 @@ class SocialAccountsController extends Controller
         }
 
         return response()->json([
-            'success'     => true,
-            'is_logged_in'=> $isLoggedIn,
-            'last_login'  => $account->last_login,
-            'status'      => $account->status
+            'success' => true,
+            'is_logged_in' => $isLoggedIn,
+            'last_login' => $account->last_login,
+            'status' => $account->status
         ]);
     }
 
@@ -271,13 +271,22 @@ class SocialAccountsController extends Controller
     {
         $account = SocialAccounts::findOrFail($id);
 
-        // If you are running ChromeDriver via server-side service, terminate it here
-        // For now, just update status
+        // clear all session related data
+        $account->cookies = null;
+        $account->auth_token = null;
+        $account->session_data = null;
+
+        // update status
         $account->last_login = Carbon::now();
         $account->status = 'complete';
+
         $account->save();
 
-        return response()->json(['success' => true, 'message' => 'Account stopped']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Account stopped and session cleared'
+        ]);
     }
+
 
 }
