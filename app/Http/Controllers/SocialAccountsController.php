@@ -222,16 +222,22 @@ class SocialAccountsController extends Controller
     public function checkAccountStatus($id)
     {
         $account = SocialAccounts::findOrFail($id);
-        
-        $isLoggedIn = $account->cookies && 
-                     $account->last_login && 
-                     $account->last_login->diffInHours(now()) < 24;
+
+        // check session validity
+        $isLoggedIn = false;
+
+        if ($account->cookies && $account->last_login) {
+            $hours = $account->last_login->diffInHours(now());
+            if ($hours < 24) {
+                $isLoggedIn = true;
+            }
+        }
 
         return response()->json([
-            'success' => true,
-            'is_logged_in' => $isLoggedIn,
-            'last_login' => $account->last_login,
-            'status' => $account->status
+            'success'     => true,
+            'is_logged_in'=> $isLoggedIn,
+            'last_login'  => $account->last_login,
+            'status'      => $account->status
         ]);
     }
 

@@ -24,6 +24,9 @@ class SocialAccounts extends Model
         'warmup_level',
         'daily_actions_count',
     ];
+     protected $casts = [
+        'last_login' => 'datetime',
+    ];
      public function user()
     {
         return $this->belongsTo(User::class);
