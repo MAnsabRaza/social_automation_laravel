@@ -102,61 +102,18 @@ class PostContentController extends Controller
         $post_content->media_urls = $base64Image;
         $post_content->hashtags = $data['hashtags'] ?? '';
         $post_content->save();
+        return redirect()->route('post-content')->with('success', 'Post Content saved successfully');
+        
+    }
 
-        $account = SocialAccounts::with('proxy')->find($post_content->account_id);
-
-        if (!$account) {
-            return back()->with('error', 'Account not found');
-        }
-
-        // ===== ALWAYS LOGIN FIRST =====
-
-        $loginResponse = Http::timeout(90)->post('http://localhost:3000/login-social', [
-            'platform' => $account->platform,
-            'username' => $account->account_username,
-            'password' => $account->account_password,
-            'account_id' => $account->id,
-            'proxy_host' => $account->proxy->proxy_host ?? null,
-            'proxy_port' => $account->proxy->proxy_port ?? null,
-            'proxy_username' => $account->proxy->proxy_username ?? null,
-            'proxy_password' => $account->proxy->proxy_password ?? null,
-        ])->json();
-
-        if (!$loginResponse['success']) {
-            return back()->with('error', 'Login failed before post');
-        }
-
-        // SAVE NEW SESSION
-        $account->session_data = $loginResponse['sessionData'];
-        $account->cookies = json_encode($loginResponse['cookies'] ?? []);
-        $account->auth_token = $loginResponse['authToken'] ?? null;
+    // Helper function to avoid code duplication
+    private function updateAccountSession($account, $response)
+    {
+        $account->session_data = $response['sessionData'] ?? $account->session_data;
+        $account->cookies = json_encode($response['cookies'] ?? []);
+        $account->auth_token = $response['authToken'] ?? null;
         $account->last_login = now();
         $account->save();
-
-
-        // ===== THEN CREATE POST =====
-
-        $response = Http::timeout(120)->post('http://localhost:3000/post-social', [
-            'platform' => $account->platform,
-            'content' => $post_content->content,
-            'image' => $post_content->media_urls,
-            'hashtags' => $post_content->hashtags,
-            'sessionData' => $account->session_data,
-            'account_id' => $account->id,
-
-            'proxy_host' => $account->proxy->proxy_host ?? null,
-            'proxy_port' => $account->proxy->proxy_port ?? null,
-            'proxy_username' => $account->proxy->proxy_username ?? null,
-            'proxy_password' => $account->proxy->proxy_password ?? null,
-        ])->json();
-
-        if ($response['success']) {
-            $post_content->status = 'published';
-            $post_content->save();
-            return back()->with('success', 'Post published successfully');
-        }
-
-        return back()->with('error', 'Post saved but failed: ' . $response['message']);
     }
     public function getPostContentData()
     {

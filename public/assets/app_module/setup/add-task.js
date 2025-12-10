@@ -39,14 +39,10 @@ let TaskController = function () {
         $("#current_date").val(elem.current_date);
         $("#task_id").val(elem.id);
         $("#account_id").val(elem.account_id);
-        $("task_type").val(elem.task_type);
-        $("#task_content").val(elem.task_content);
+        $("#post_content_id").val(elem.post_content_id);
+        $("#task_type").val(elem.task_type);
         $("#target_url").val(elem.target_url);
         $("#scheduled_at").val(elem.scheduled_at);
-        $("#status").val(elem.status);
-        $("#priority").val(elem.priority);
-        $("#retry_count").val(elem.retry_count);
-        $("#error_message").val(elem.error_message);
         $("#executed_at").val(elem.executed_at);
     };
 
@@ -148,12 +144,9 @@ let TaskController = function () {
                     { data: "id", name: "id" },
                     { data: "current_date", name: "current_date" },
                     { data: "task_type", name: "task_type" },
-                    { data: "task_content", name: "task_content" },
                     { data: "target_url", name: "target_url" },
-                      { data: "status", name: "status" },
-                  
-                    { data: "priority", name: "priority" },
-                    { data: "retry_count", name: "retry_count" },
+                    { data: "scheduled_at", name: "scheduled_at" },
+                    { data: "executed_at", name: "executed_at" },
                     {
                         data: null,
                         render: function (data, type, row) {

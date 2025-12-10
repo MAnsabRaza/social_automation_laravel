@@ -181,17 +181,14 @@ return new class extends Migration {
       $table->unsignedBigInteger('user_id');
       $table->unsignedBigInteger('account_id');
       $table->enum('task_type', ['post', 'comment', 'like', 'follow', 'unfollow', 'share', 'review']);
-      $table->text('task_content')->nullable();
+      $table->unsignedBigInteger('post_content_id')->nullable();
       $table->string('target_url', 500)->nullable();
       $table->timestamp('scheduled_at')->nullable();
-      $table->enum('status', ['pending', 'running', 'completed', 'failed', 'cancelled'])->default('pending');
-      $table->integer('priority')->default(0);
-      $table->integer('retry_count')->default(0);
-      $table->text('error_message')->nullable();
       $table->timestamp('executed_at')->nullable();
       $table->timestamps();
 
       // Foreign keys
+      $table->foreign('post_content_id')->references('id')->on('post_content')->onDelete('set null');
       $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
       $table->foreign('account_id')->references('id')->on('social_accounts')->onDelete('cascade');
     });

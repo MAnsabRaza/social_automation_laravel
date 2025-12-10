@@ -10,15 +10,11 @@ class Task extends Model
     protected $fillable = [
         'current_date',
         'user_id',
+        'post_content_id',
         'account_id',
         'task_type',
-        'task_content',
         'target_url',
         'scheduled_at',
-        'status',
-        'priority',
-        'retry_count',
-        'error_message',
         'executed_at',
     ];
     public function user()
@@ -26,8 +22,13 @@ class Task extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function socialAccount()
+     public function socialAccount()
     {
         return $this->belongsTo(SocialAccounts::class, 'account_id');
+    }
+
+    public function postContent()
+    {
+        return $this->belongsTo(PostContent::class, 'post_content_id');
     }
 }

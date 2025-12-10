@@ -89,11 +89,15 @@
                                 @endforeach
                             </select>
                         </div>
-
+                        
                         <div>
-                            <label class="font-semibold">Priority</label>
-                            <input type="number" name="priority" id="priority" value="0"
-                                class="w-full p-2 border rounded-lg">
+                            <label class="font-semibold">Select Post Content</label>
+                            <select name="post_content_id" id="post_content_id" class="w-full p-2 border rounded-lg">
+                                <option value="">-- Select Post Content --</option>
+                                @foreach ($post_contents as $post)
+                                    <option value="{{ $post->id }}">{{ $post->title }}</option>
+                                @endforeach
+                            </select>
                         </div>
 
                     </div>
@@ -102,10 +106,7 @@
                 <!-- Section 2 -->
                 <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="font-semibold">Task Content</label>
-                            <textarea name="task_content" id="task_content" class="w-full p-2 border rounded-lg"></textarea>
-                        </div>
+                      
                         <div class="mt-4">
                             <label class="font-semibold">Target URL</label>
                             <input type="text" name="target_url" id="target_url" class="w-full p-2 border rounded-lg">
@@ -115,49 +116,13 @@
                             <input type="datetime-local" name="scheduled_at" id="scheduled_at"
                                 class="w-full p-2 border rounded-lg">
                         </div>
-                    </div>
-                </div>
-
-
-
-                <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div class="mt-4">
-                            <label class="font-semibold">Status</label>
-                            <select name="status" id="status" class="w-full p-2 border rounded-lg">
-                                <option value="">-- Select Status --</option>
-                                <option value="pending">Pending</option>
-                                <option value="running">Running</option>
-                                <option value="completed">Completed</option>
-                                <option value="failed">Failed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-
-                        <div class="mt-4">
-                            <label class="font-semibold">Retry Count</label>
-                            <input type="number" name="retry_count" id="retry_count" value="0"
-                                class="w-full p-2 border rounded-lg">
-                        </div>
-
-                        <div class="mt-4">
-                            <label class="font-semibold">Error Message</label>
-                            <textarea name="error_message" id="error_message"
-                                class="w-full p-2 border rounded-lg"></textarea>
-                        </div>
-                        <div class="mt-4">
+                           <div class="mt-4">
                             <label class="font-semibold">Executed At</label>
                             <input type="datetime-local" name="executed_at" id="executed_at"
                                 class="w-full p-2 border rounded-lg">
                         </div>
                     </div>
-
-
-
-
-
                 </div>
-
             </form>
         </div>
 
@@ -179,11 +144,9 @@
                             <th class="p-3">ID</th>
                             <th class="p-3">Current Date</th>
                             <th class="p-3">Task Type</th>
-                            <th class="p-3">Task Content</th>
                             <th class="p-3">Target Url</th>
-                            <th class="p-3">Status</th>
-                            <th class="p-3">Priority</th>
-                            <th class="p-3 text-center">Retry Count</th>
+                            <th class="p-3">Scheduled At</th>
+                            <th class="p-3">Executed At</th>
                             <th class="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
