@@ -10,12 +10,14 @@ class Task extends Model
     protected $fillable = [
         'current_date',
         'user_id',
-        'post_content_id',
         'account_id',
         'task_type',
         'target_url',
         'scheduled_at',
         'executed_at',
+        'content',
+        'hashtags',
+        'media_urls',
     ];
     public function user()
     {

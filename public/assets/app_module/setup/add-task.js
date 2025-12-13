@@ -1,9 +1,11 @@
 let TaskController = function () {
-    const $tabForm = $("#tab-form");
+   const $tabForm = $("#tab-form");
     const $tabList = $("#tab-list");
     const $contentForm = $("#content-form");
     const $contentList = $("#content-list");
     const $btnAddNew = $("#btn-add-new");
+    const $taskType = $("#task_type");
+    const $postFields = $("#post-fields");
 
     function showFormTab() {
         $tabForm
@@ -34,16 +36,31 @@ let TaskController = function () {
         $("#proxyForm")[0].reset();
         $("#proxy_id").val("");
     });
+      function togglePostFields(type) {
+        if (type === "post") {
+            $postFields.removeClass("hidden");
+            $("#target_url").prop("disabled", true).val("");
+        } else {
+            $postFields.addClass("hidden");
+            $("#target_url").prop("disabled", false);
+        }
+    }
+
+    $taskType.on("change", function () {
+        togglePostFields($(this).val());
+    });
 
     const populateData = function (elem) {
         $("#current_date").val(elem.current_date);
         $("#task_id").val(elem.id);
         $("#account_id").val(elem.account_id);
-        $("#post_content_id").val(elem.post_content_id);
         $("#task_type").val(elem.task_type);
         $("#target_url").val(elem.target_url);
         $("#scheduled_at").val(elem.scheduled_at);
         $("#executed_at").val(elem.executed_at);
+        $("#content").val(elem.content);
+        $("#hashtags").val(elem.hashtags);
+        $("#media_urls").val(elem.media_urls);
     };
 
     // const fetchProxyData = async (id) => {
@@ -131,6 +148,13 @@ let TaskController = function () {
         });
     };
 
+    
+    $btnAddNew.on("click", () => {
+        showFormTab();
+        $("#taskForm")[0].reset();
+        $("#task_id").val("");
+        togglePostFields(null);
+    });
     let table;
 
     return {

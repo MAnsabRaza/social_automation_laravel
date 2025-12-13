@@ -52,13 +52,13 @@
                             </button>
 
                             <!-- Refresh -->
-                         
+
                         </div>
                     </div>
                 </div>
                 <!-- Section 1 -->
                 <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                         <div>
                             <label class="font-semibold">Date</label>
@@ -89,16 +89,6 @@
                                 @endforeach
                             </select>
                         </div>
-                        
-                        <div>
-                            <label class="font-semibold">Select Post Content</label>
-                            <select name="post_content_id" id="post_content_id" class="w-full p-2 border rounded-lg">
-                                <option value="">-- Select Post Content --</option>
-                                @foreach ($post_contents as $post)
-                                    <option value="{{ $post->id }}">{{ $post->title }}</option>
-                                @endforeach
-                            </select>
-                        </div>
 
                     </div>
                 </div>
@@ -106,7 +96,7 @@
                 <!-- Section 2 -->
                 <div class="shadow-md rounded-2xl bg-white p-6 mt-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      
+
                         <div class="mt-4">
                             <label class="font-semibold">Target URL</label>
                             <input type="text" name="target_url" id="target_url" class="w-full p-2 border rounded-lg">
@@ -116,13 +106,37 @@
                             <input type="datetime-local" name="scheduled_at" id="scheduled_at"
                                 class="w-full p-2 border rounded-lg">
                         </div>
-                           <div class="mt-4">
+                        <div class="mt-4">
                             <label class="font-semibold">Executed At</label>
                             <input type="datetime-local" name="executed_at" id="executed_at"
                                 class="w-full p-2 border rounded-lg">
                         </div>
                     </div>
                 </div>
+                <div id="post-fields" class="shadow-md rounded-2xl bg-white p-6 mt-4 hidden">
+                    <h3 class="text-lg font-bold text-blue-800 mb-4">Post Details</h3>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="font-semibold">Post Content</label>
+                            <textarea name="content" id="content" class="w-full p-2 border rounded-lg"
+                                placeholder="Write caption..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="font-semibold">Hashtags</label>
+                            <input type="text" name="hashtags" id="hashtags" class="w-full p-2 border rounded-lg"
+                                placeholder="#instagram #automation">
+                        </div>
+
+                        <div>
+                            <label class="font-semibold">Media URLs (Base64 / URL JSON)</label>
+                            <textarea name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg"
+                                placeholder='["data:image/jpeg;base64,..."]'></textarea>
+                        </div>
+                    </div>
+                </div>
+
             </form>
         </div>
 

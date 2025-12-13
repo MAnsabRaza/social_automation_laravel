@@ -64,34 +64,6 @@ return new class extends Migration {
       // Foreign key
       $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
     });
-
-    // Create proxy_api_settings table
-    Schema::create('proxy_api_settings', function (Blueprint $table) {
-      $table->id();
-      $table->date('current_date');
-      $table->unsignedBigInteger('user_id');
-      $table->string('api_name', 100)->nullable();
-      $table->string('api_url', 255)->nullable();
-      $table->string('api_key', 255)->nullable();
-      $table->boolean('rotation_enabled')->default(false);
-      $table->timestamps();
-
-      // Foreign key
-      $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-    });
-    // Create comment_templates table
-    Schema::create('comment_templates', function (Blueprint $table) {
-      $table->id();
-      $table->date('current_date');
-      $table->unsignedBigInteger('user_id');
-      $table->text('template_text');
-      $table->boolean('spintax_enabled')->default(true);
-      $table->string('category', 100)->nullable();
-      $table->timestamps();
-
-      // Foreign key
-      $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-    });
     // Create post_content table
     Schema::create('post_content', function (Blueprint $table) {
       $table->id();
@@ -110,69 +82,6 @@ return new class extends Migration {
       $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
       $table->foreign('account_id')->references('id')->on('social_accounts')->onDelete('cascade');
     });
-    //Account Group
-    Schema::create('account_groups', function (Blueprint $table) {
-      $table->id();
-      $table->date('current_date');
-      $table->unsignedBigInteger('user_id');
-      $table->string('group_name', 150);
-      $table->text('description')->nullable();
-      $table->timestamps();
-
-      $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-    });
-    // Activity Logs
-    Schema::create('activity_logs', function (Blueprint $table) {
-      $table->id();
-      $table->date('current_date');
-      $table->unsignedBigInteger('account_id');
-      $table->string('action_type', 100);
-      $table->text('action_detail')->nullable();
-      $table->enum('status', ['success', 'failed'])->default('success');
-      $table->string('ip_address', 50)->nullable();
-      $table->text('user_agent')->nullable();
-      $table->timestamps();
-
-      $table->foreign('account_id')->references('id')->on('social_accounts')->onDelete('cascade');
-    });
-    // Account Group Mapping
-    Schema::create('account_group_mapping', function (Blueprint $table) {
-      $table->id();
-      $table->date('current_date');
-      $table->unsignedBigInteger('group_id');
-      $table->unsignedBigInteger('account_id');
-      $table->timestamps();
-
-      $table->foreign('group_id')->references('id')->on('account_groups')->onDelete('cascade');
-      $table->foreign('account_id')->references('id')->on('social_accounts')->onDelete('cascade');
-
-      $table->unique(['group_id', 'account_id'], 'unique_account_group');
-    });
-    // Create system_settings table
-    Schema::create('system_settings', function (Blueprint $table) {
-      $table->id();
-      $table->date('current_date');
-      $table->string('setting_key', 100)->unique();
-      $table->text('setting_value')->nullable();
-      $table->string('setting_type', 50)->nullable();
-      $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
-    });
-    // Create warmup_settings table
-    Schema::create('warmup_settings', function (Blueprint $table) {
-      $table->id();
-      $table->date('current_date');
-      $table->unsignedBigInteger('user_id');
-      $table->integer('day_number');
-      $table->integer('max_posts')->default(0);
-      $table->integer('max_likes')->default(0);
-      $table->integer('max_comments')->default(0);
-      $table->integer('max_follows')->default(0);
-      $table->integer('max_unfollows')->default(0);
-      $table->timestamps();
-
-      $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-      $table->unique(['user_id', 'day_number'], 'unique_day');
-    });
 
     // Create tasks table
     Schema::create('tasks', function (Blueprint $table) {
@@ -181,14 +90,13 @@ return new class extends Migration {
       $table->unsignedBigInteger('user_id');
       $table->unsignedBigInteger('account_id');
       $table->enum('task_type', ['post', 'comment', 'like', 'follow', 'unfollow', 'share', 'review']);
-      $table->unsignedBigInteger('post_content_id')->nullable();
       $table->string('target_url', 500)->nullable();
+      $table->text('content')->nullable();
+      $table->text('hashtags')->nullable();
+      $table->longText('media_urls')->nullable();
       $table->timestamp('scheduled_at')->nullable();
       $table->timestamp('executed_at')->nullable();
       $table->timestamps();
-
-      // Foreign keys
-      $table->foreign('post_content_id')->references('id')->on('post_content')->onDelete('set null');
       $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
       $table->foreign('account_id')->references('id')->on('social_accounts')->onDelete('cascade');
     });
@@ -203,14 +111,7 @@ return new class extends Migration {
     Schema::dropIfExists('proxies');
     Schema::dropIfExists('social_accounts');
     Schema::dropIfExists('captcha_settings');
-    Schema::dropIfExists('proxy_api_settings');
-    Schema::dropIfExists('comment_templates');
     Schema::dropIfExists('post_content');
-    Schema::dropIfExists('account_groups');
-    Schema::dropIfExists('activity_logs');
-    Schema::dropIfExists('account_group_mapping');
-    Schema::dropIfExists('system_settings');
-    Schema::dropIfExists('warmup_settings');
     Schema::dropIfExists('tasks');
 
   }
