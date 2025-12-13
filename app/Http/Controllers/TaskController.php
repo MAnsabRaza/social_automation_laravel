@@ -25,7 +25,7 @@ class TaskController extends Controller
         $data = $request->all();
         $userId = Auth::id();
         $base64Image = null;
-         if ($request->hasFile('media_urls')) {
+        if ($request->hasFile('media_urls')) {
             $file = $request->file('media_urls');
             $base64Image = "data:" . $file->getMimeType() . ";base64," . base64_encode(file_get_contents($file));
         }
@@ -62,47 +62,12 @@ class TaskController extends Controller
         $task->hashtags = $data['hashtags'];
         $task->media_urls = $base64Image;
         $task->save();
+        if ($task->task_type === 'post') {
+            $this->executeTask($task);
+        }
         return redirect()->route('task')->with('success', 'task created successfully');
     }
-    // public function createTask(Request $request)
-    // {
-    //     $data = $request->all();
-    //     $userId = Auth::id();
-    //     $base64Image = null;
 
-    //     if ($request->hasFile('media_urls')) {
-    //         $file = $request->file('media_urls');
-    //         $base64Image = "data:" . $file->getMimeType() . ";base64," . base64_encode(file_get_contents($file));
-    //     }
-
-    //     $request->validate([
-    //         'account_id' => 'required|exists:social_accounts,id',
-    //         'task_type' => 'required|in:post,comment,like,follow,unfollow,share,review',
-    //         'scheduled_at' => 'nullable|date',
-
-    //         // POST only
-    //         'content' => 'required_if:task_type,post',
-    //         'media_urls' => 'required_if:task_type,post',
-    //     ]);
-
-    //      // If editing existing post
-    //     if (isset($data['id'])) {
-    //         $task = Task::find($data['id']);
-    //         if (!$task) {
-    //             return redirect()->route('task')->with('error', 'task not found');
-    //         }
-    //     } else {
-    //         $task = new Task();
-    //     }
-
-
-
-    //     if ($task->task_type === 'post') {
-    //         $this->executeTask($task);
-    //     }
-
-    //     return redirect()->route('task')->with('success', 'Task saved successfully');
-    // }
     private function executeTask(Task $task)
     {
         $account = SocialAccounts::with('proxy')->find($task->account_id);
