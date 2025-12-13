@@ -222,8 +222,6 @@ class SocialAccountsController extends Controller
     public function checkAccountStatus($id)
     {
         $account = SocialAccounts::findOrFail($id);
-
-        // check session validity
         $isLoggedIn = false;
 
         if ($account->cookies && $account->last_login) {
@@ -241,38 +239,9 @@ class SocialAccountsController extends Controller
         ]);
     }
 
-
-
-    // public function startAccount($id)
-    // {
-    //     $account = SocialAccounts::findOrFail($id);
-
-    //     $account->status = 'inprogress';
-    //     $account->save();
-
-    //     $loginService = new SocialLoginService();
-
-    //     try {
-    //         $loginService->login($account);
-    //     } catch (\Exception $e) {
-    //         $account->status = 'error';
-    //         $account->save();
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $e->getMessage()
-    //         ]);
-    //     }
-    //     $account->status = 'inprogress';
-    //     $account->save();
-
-    //     return response()->json(['success' => true]);
-    // }
     public function stopAccount($id)
     {
         $account = SocialAccounts::findOrFail($id);
-
-        // If you are running ChromeDriver via server-side service, terminate it here
-        // For now, just update status
         $account->last_login = Carbon::now();
         $account->status = 'complete';
         $account->save();

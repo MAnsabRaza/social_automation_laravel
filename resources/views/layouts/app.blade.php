@@ -329,14 +329,7 @@
                                 <span class="font-medium">Social Account</span>
                             </a>
                         </li>
-                        <!-- Post Content -->
-                        <li>
-                            <a href="{{ route('post-content') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
-           {{ request()->routeIs('post-content') ? 'bg-green-700 text-white' : '' }}">
-                                <i class="fas fa-pen-fancy mr-4 text-green-400 nav-icon text-lg"></i>
-                                <span class="font-medium">Post Content</span>
-                            </a>
-                        </li>
+
 
                         <!-- Proxy -->
                         <li>
@@ -344,6 +337,22 @@
            {{ request()->routeIs('proxy') ? 'bg-red-800 text-white' : '' }}">
                                 <i class="fas fa-server mr-4 text-red-400 nav-icon text-lg"></i>
                                 <span class="font-medium">Proxy</span>
+                            </a>
+                        </li>
+                        <!-- Task -->
+                        <li>
+                            <a href="{{ route('task') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
+           {{ request()->routeIs('task') ? 'bg-yellow-700 text-white' : '' }}">
+                                <i class="fas fa-tasks mr-4 text-yellow-400 nav-icon text-lg"></i>
+                                <span class="font-medium">Task</span>
+                            </a>
+                        </li>
+                        <!-- Post Content -->
+                        <li>
+                            <a href="{{ route('post-content') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
+           {{ request()->routeIs('post-content') ? 'bg-green-700 text-white' : '' }}">
+                                <i class="fas fa-pen-fancy mr-4 text-green-400 nav-icon text-lg"></i>
+                                <span class="font-medium">Post Content</span>
                             </a>
                         </li>
 
@@ -356,14 +365,7 @@
                             </a>
                         </li>
 
-                        <!-- Task -->
-                        <li>
-                            <a href="{{ route('task') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
-           {{ request()->routeIs('task') ? 'bg-yellow-700 text-white' : '' }}">
-                                <i class="fas fa-tasks mr-4 text-yellow-400 nav-icon text-lg"></i>
-                                <span class="font-medium">Task</span>
-                            </a>
-                        </li>
+
 
 
 

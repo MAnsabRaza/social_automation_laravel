@@ -36,15 +36,16 @@ let TaskController = function () {
         $("#proxyForm")[0].reset();
         $("#proxy_id").val("");
     });
-      function togglePostFields(type) {
-        if (type === "post") {
-            $postFields.removeClass("hidden");
-            $("#target_url").prop("disabled", true).val("");
-        } else {
-            $postFields.addClass("hidden");
-            $("#target_url").prop("disabled", false);
-        }
+    function togglePostFields(type) {
+    if (type === "post") {
+        $postFields.removeClass("hidden");
+        $("#target_url").prop("readonly", true).val("");
+    } else {
+        $postFields.addClass("hidden");
+        $("#target_url").prop("readonly", false);
     }
+}
+
 
     $taskType.on("change", function () {
         togglePostFields($(this).val());
@@ -60,7 +61,11 @@ let TaskController = function () {
         $("#executed_at").val(elem.executed_at);
         $("#content").val(elem.content);
         $("#hashtags").val(elem.hashtags);
-        $("#media_urls").val(elem.media_urls);
+          if (elem.media_urls) {
+            $("#previewImage")
+                .attr("src", elem.media_urls)
+                .removeClass("hidden");
+        }
     };
 
     // const fetchProxyData = async (id) => {

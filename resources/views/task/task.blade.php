@@ -24,7 +24,8 @@
         <!-- FORM TAB -->
         <div id="content-form">
 
-            <form action="{{ route('createTask') }}" method="POST">
+            <form action="{{ route('createTask') }}" method="POST" enctype="multipart/form-data">
+
                 @csrf
                 <input type="hidden" name="id" id="task_id">
 
@@ -131,8 +132,8 @@
 
                         <div>
                             <label class="font-semibold">Media URLs (Base64 / URL JSON)</label>
-                            <textarea name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg"
-                                placeholder='["data:image/jpeg;base64,..."]'></textarea>
+                            <input type="file" name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg" required>
+                    <img id="previewImage" src="" class="w-32 h-32 mt-2 border hidden" />
                         </div>
                     </div>
                 </div>

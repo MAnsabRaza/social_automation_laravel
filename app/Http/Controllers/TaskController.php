@@ -22,42 +22,87 @@ class TaskController extends Controller
 
     public function createTask(Request $request)
     {
+        $data = $request->all();
         $userId = Auth::id();
-
-        $request->validate([
-            'account_id' => 'required|exists:social_accounts,id',
-            'task_type' => 'required|in:post,comment,like,follow,unfollow,share,review',
-            'scheduled_at' => 'nullable|date',
-
-            // POST only
-            'content' => 'required_if:task_type,post',
-            'media_urls' => 'required_if:task_type,post',
-        ]);
-
-        $task = Task::updateOrCreate(
-            ['id' => $request->id],
-            [
-                'current_date' => $request->current_date ?? now(),
-                'user_id' => $userId,
-                'account_id' => $request->account_id,
-                'task_type' => $request->task_type,
-                'target_url' => $request->target_url,
-                'scheduled_at' => $request->scheduled_at ?? now(),
-                'executed_at' => $request->executed_at,
-                // 'content' => $request->content,
-                'hashtags' => $request->hashtags,
-                'media_urls' => $request->media_urls
-                    ? json_encode($request->media_urls)
-                    : null,
-            ]
-        );
-
-        if ($task->task_type === 'post') {
-            $this->executeTask($task);
+        $base64Image = null;
+         if ($request->hasFile('media_urls')) {
+            $file = $request->file('media_urls');
+            $base64Image = "data:" . $file->getMimeType() . ";base64," . base64_encode(file_get_contents($file));
         }
 
-        return redirect()->route('task')->with('success', 'Task saved successfully');
+        if (isset($data['id'])) {
+            $task = Task::find($data['id']);
+            if ($task) {
+                $task->current_date = $data['current_date'];
+                $task->user_id = $userId;
+                $task->account_id = $data['account_id'];
+                $task->task_type = $data['task_type'];
+                $task->target_url = $data['target_url'] ?? null;
+                $task->scheduled_at = $data['scheduled_at'];
+                $task->executed_at = $data['executed_at'];
+                $task->content = $data['content'] ?? null;
+                $task->hashtags = $data['hashtags'] ?? null;
+                $task->media_urls = $base64Image;
+                $task->save();
+
+                return redirect()->route('task')->with('success', 'task created successfully');
+            } else {
+                return redirect()->route('socialAccount')->with('error', 'task not found');
+            }
+        }
+        $task = new Task();
+        $task->current_date = $data['current_date'];
+        $task->user_id = $userId;
+        $task->account_id = $data['account_id'];
+        $task->task_type = $data['task_type'];
+        $task->target_url = $data['target_url'];
+        $task->scheduled_at = $data['scheduled_at'];
+        $task->executed_at = $data['executed_at'];
+        $task->content = $data['content'];
+        $task->hashtags = $data['hashtags'];
+        $task->media_urls = $base64Image;
+        $task->save();
+        return redirect()->route('task')->with('success', 'task created successfully');
     }
+    // public function createTask(Request $request)
+    // {
+    //     $data = $request->all();
+    //     $userId = Auth::id();
+    //     $base64Image = null;
+
+    //     if ($request->hasFile('media_urls')) {
+    //         $file = $request->file('media_urls');
+    //         $base64Image = "data:" . $file->getMimeType() . ";base64," . base64_encode(file_get_contents($file));
+    //     }
+
+    //     $request->validate([
+    //         'account_id' => 'required|exists:social_accounts,id',
+    //         'task_type' => 'required|in:post,comment,like,follow,unfollow,share,review',
+    //         'scheduled_at' => 'nullable|date',
+
+    //         // POST only
+    //         'content' => 'required_if:task_type,post',
+    //         'media_urls' => 'required_if:task_type,post',
+    //     ]);
+
+    //      // If editing existing post
+    //     if (isset($data['id'])) {
+    //         $task = Task::find($data['id']);
+    //         if (!$task) {
+    //             return redirect()->route('task')->with('error', 'task not found');
+    //         }
+    //     } else {
+    //         $task = new Task();
+    //     }
+
+
+
+    //     if ($task->task_type === 'post') {
+    //         $this->executeTask($task);
+    //     }
+
+    //     return redirect()->route('task')->with('success', 'Task saved successfully');
+    // }
     private function executeTask(Task $task)
     {
         $account = SocialAccounts::with('proxy')->find($task->account_id);
