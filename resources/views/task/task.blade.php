@@ -132,7 +132,7 @@
 
                         <div>
                             <label class="font-semibold">Media URLs (Base64 / URL JSON)</label>
-                            <input type="file" name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg" required>
+                            <input type="file" name="media_urls" id="media_urls" class="w-full p-2 border rounded-lg">
                     <img id="previewImage" src="" class="w-32 h-32 mt-2 border hidden" />
                         </div>
                     </div>

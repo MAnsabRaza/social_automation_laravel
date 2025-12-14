@@ -62,9 +62,10 @@ class TaskController extends Controller
         $task->hashtags = $data['hashtags'];
         $task->media_urls = $base64Image;
         $task->save();
-        if ($task->task_type === 'post') {
+        if (in_array($task->task_type, ['post', 'follow','unfollow'])) {
             $this->executeTask($task);
         }
+
         return redirect()->route('task')->with('success', 'task created successfully');
     }
 
