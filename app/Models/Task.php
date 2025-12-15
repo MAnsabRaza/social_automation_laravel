@@ -18,6 +18,7 @@ class Task extends Model
         'content',
         'hashtags',
         'media_urls',
+        'comment',
     ];
     public function user()
     {

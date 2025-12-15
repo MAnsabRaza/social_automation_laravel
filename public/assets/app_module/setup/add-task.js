@@ -6,6 +6,7 @@ let TaskController = function () {
     const $btnAddNew = $("#btn-add-new");
     const $taskType = $("#task_type");
     const $postFields = $("#post-fields");
+    const $commentFields = $("#comment-fields");
 
     function showFormTab() {
         $tabForm
@@ -36,20 +37,29 @@ let TaskController = function () {
         $("#proxyForm")[0].reset();
         $("#proxy_id").val("");
     });
-    function togglePostFields(type) {
+    function toggleTaskFields(type) {
+    // Hide all first
+    $postFields.addClass("hidden");
+    $commentFields.addClass("hidden");
+    $("#target_url").prop("readonly", false);
+
     if (type === "post") {
         $postFields.removeClass("hidden");
         $("#target_url").prop("readonly", true).val("");
-    } else {
-        $postFields.addClass("hidden");
-        $("#target_url").prop("readonly", false);
     }
+
+    if (type === "comment") {
+        $commentFields.removeClass("hidden");
+    }
+
+
 }
 
 
-    $taskType.on("change", function () {
-        togglePostFields($(this).val());
-    });
+   $taskType.on("change", function () {
+    toggleTaskFields($(this).val());
+});
+
 
     const populateData = function (elem) {
         $("#current_date").val(elem.current_date);
@@ -61,6 +71,7 @@ let TaskController = function () {
         $("#executed_at").val(elem.executed_at);
         $("#content").val(elem.content);
         $("#hashtags").val(elem.hashtags);
+        $("#comment").val(elem.comment);
           if (elem.media_urls) {
             $("#previewImage")
                 .attr("src", elem.media_urls)
@@ -158,7 +169,7 @@ let TaskController = function () {
         showFormTab();
         $("#taskForm")[0].reset();
         $("#task_id").val("");
-        togglePostFields(null);
+        toggleTaskFields(null);
     });
     let table;
 

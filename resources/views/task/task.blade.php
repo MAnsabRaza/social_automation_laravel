@@ -114,6 +114,19 @@
                         </div>
                     </div>
                 </div>
+                  <div id="comment-fields" class="shadow-md rounded-2xl bg-white p-6 mt-4 hidden">
+                    <h3 class="text-lg font-bold text-blue-800 mb-4">Post Details</h3>
+
+                    <div class="grid grid-cols-1 gap-4">
+                     
+
+                        <div>
+                            <label class="font-semibold">Comment</label>
+                            <input type="text" name="comment" id="comment" class="w-full p-2 border rounded-lg"
+                                placeholder="Enter Comment...">
+                        </div>
+                    </div>
+                </div>
                 <div id="post-fields" class="shadow-md rounded-2xl bg-white p-6 mt-4 hidden">
                     <h3 class="text-lg font-bold text-blue-800 mb-4">Post Details</h3>
 

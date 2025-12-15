@@ -43,6 +43,7 @@ class TaskController extends Controller
                 $task->content = $data['content'] ?? null;
                 $task->hashtags = $data['hashtags'] ?? null;
                 $task->media_urls = $base64Image;
+                $task->comment = $data['comment'] ?? null;
                 $task->save();
 
                 return redirect()->route('task')->with('success', 'task created successfully');
@@ -61,10 +62,12 @@ class TaskController extends Controller
         $task->content = $data['content'];
         $task->hashtags = $data['hashtags'];
         $task->media_urls = $base64Image;
+        $task->comment = $data['comment'] ?? null;
         $task->save();
-        if (in_array($task->task_type, ['post', 'follow','unfollow'])) {
+        if (in_array($task->task_type, ['like', 'post', 'follow', 'unfollow','comment'])) {
             $this->executeTask($task);
         }
+
 
         return redirect()->route('task')->with('success', 'task created successfully');
     }
@@ -86,6 +89,7 @@ class TaskController extends Controller
                 'content' => $task->content,
                 'hashtags' => $task->hashtags,
                 'media_urls' => $task->media_urls,
+                'comment' => $task->comment,
             ],
             'account' => [
                 'id' => $account->id,
