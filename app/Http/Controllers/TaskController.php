@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PostContent;
+use Illuminate\Support\Str;
 use App\Models\SocialAccounts;
 use App\Models\Task;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http; // <-- used to call Node API
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\File;
 
 class TaskController extends Controller
 {
@@ -24,10 +26,29 @@ class TaskController extends Controller
     {
         $data = $request->all();
         $userId = Auth::id();
-        $base64Image = null;
+        // $base64Image = null;
+        // if ($request->hasFile('media_urls')) {
+        //     $file = $request->file('media_urls');
+        //     $base64Image = "data:" . $file->getMimeType() . ";base64," . base64_encode(file_get_contents($file));
+        // }
+        $imagePath = null;
+
+        // ✅ IMAGE SAVE IN PUBLIC FOLDER
         if ($request->hasFile('media_urls')) {
             $file = $request->file('media_urls');
-            $base64Image = "data:" . $file->getMimeType() . ";base64," . base64_encode(file_get_contents($file));
+
+            $fileName = 'task_' . time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+            $destinationPath = public_path('images/tasks');
+
+            // create folder if not exists
+            if (!File::exists($destinationPath)) {
+                File::makeDirectory($destinationPath, 0755, true);
+            }
+
+            $file->move($destinationPath, $fileName);
+
+            // save RELATIVE path in DB
+            $imagePath = 'images/tasks/' . $fileName;
         }
 
         if (isset($data['id'])) {
@@ -42,7 +63,7 @@ class TaskController extends Controller
                 $task->executed_at = $data['executed_at'];
                 $task->content = $data['content'] ?? null;
                 $task->hashtags = $data['hashtags'] ?? null;
-                $task->media_urls = $base64Image;
+                $task->media_urls = $imagePath;
                 $task->comment = $data['comment'] ?? null;
                 $task->save();
 
@@ -61,10 +82,10 @@ class TaskController extends Controller
         $task->executed_at = $data['executed_at'];
         $task->content = $data['content'];
         $task->hashtags = $data['hashtags'];
-        $task->media_urls = $base64Image;
+        $task->media_urls = $imagePath;
         $task->comment = $data['comment'] ?? null;
         $task->save();
-        if (in_array($task->task_type, ['like', 'post', 'follow', 'unfollow','comment'])) {
+        if (in_array($task->task_type, ['like', 'post', 'follow', 'unfollow', 'comment'])) {
             $this->executeTask($task);
         }
 
