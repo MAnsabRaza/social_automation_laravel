@@ -76,8 +76,6 @@
                                 <option value="like">Like</option>
                                 <option value="follow">Follow</option>
                                 <option value="unfollow">Unfollow</option>
-                                <option value="share">Share</option>
-                                <option value="review">Review</option>
                             </select>
                         </div>
 
