@@ -174,23 +174,63 @@ class SocialAccountsController extends Controller
         return view('social-account/social-account-run', compact('account', 'url', 'cookies'));
     }
 
+    // public function startAccount($id)
+    // {
+    //     $account = SocialAccounts::with('proxy')->findOrFail($id);
+    //     $account->status = 'inprogress';
+    //     $account->save();
+
+    //     $proxy = $account->proxy;
+
+    //     $response = Http::timeout(120)->post('http://localhost:3000/login-social', [
+    //         'username' => $account->account_username,
+    //         'password' => $account->account_password,
+    //         'platform' => $account->platform,
+    //         'account_id' => $account->id,
+    //         'proxy_host' => $proxy->proxy_host ?? null,
+    //         'proxy_port' => $proxy->proxy_port ?? null,
+    //         'proxy_username' => $proxy->proxy_username ?? null,
+    //         'proxy_password' => $proxy->proxy_password ?? null,
+    //     ]);
+
+    //     $result = $response->json();
+
+    //     if (isset($result['success']) && $result['success']) {
+    //         // Save cookies, auth token, and session data
+    //         $account->cookies = $result['cookies'] ?? null;
+    //         $account->auth_token = $result['authToken'] ?? null;
+    //         $account->session_data = $result['sessionData'] ?? null;
+    //         $account->last_login = now();
+    //         $account->status = 'active';
+    //         $account->save();
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Login successful and session saved'
+    //         ]);
+    //     } else {
+    //         $account->status = 'failed';
+    //         $account->save();
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $result['error'] ?? 'Login failed'
+    //         ]);
+    //     }
+    // }
+
     public function startAccount($id)
     {
-        $account = SocialAccounts::with('proxy')->findOrFail($id);
+        $account = SocialAccounts::findOrFail($id); // Removed ->with('proxy')
         $account->status = 'inprogress';
         $account->save();
-
-        $proxy = $account->proxy;
 
         $response = Http::timeout(120)->post('http://localhost:3000/login-social', [
             'username' => $account->account_username,
             'password' => $account->account_password,
             'platform' => $account->platform,
             'account_id' => $account->id,
-            'proxy_host' => $proxy->proxy_host ?? null,
-            'proxy_port' => $proxy->proxy_port ?? null,
-            'proxy_username' => $proxy->proxy_username ?? null,
-            'proxy_password' => $proxy->proxy_password ?? null,
+            // Removed all proxy parameters
         ]);
 
         $result = $response->json();
@@ -232,10 +272,10 @@ class SocialAccountsController extends Controller
         }
 
         return response()->json([
-            'success'     => true,
-            'is_logged_in'=> $isLoggedIn,
-            'last_login'  => $account->last_login,
-            'status'      => $account->status
+            'success' => true,
+            'is_logged_in' => $isLoggedIn,
+            'last_login' => $account->last_login,
+            'status' => $account->status
         ]);
     }
 
