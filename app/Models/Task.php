@@ -41,10 +41,7 @@ class Task extends Model
         return $this->belongsTo(SocialAccounts::class, 'account_id');
     }
 
-    public function postContent()
-    {
-        return $this->belongsTo(PostContent::class, 'post_content_id');
-    }
+   
 
     // Scopes
     public function scopeRunning($query)
