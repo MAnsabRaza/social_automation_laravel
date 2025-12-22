@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class SocialAccounts extends Model
 {
     protected $table = 'social_accounts';
+
     protected $fillable = [
         'current_date',
         'user_id',
@@ -24,10 +25,13 @@ class SocialAccounts extends Model
         'warmup_level',
         'daily_actions_count',
     ];
-     protected $casts = [
+
+    protected $casts = [
         'last_login' => 'datetime',
+        'cookies' => 'array', // Auto-convert JSON to array
     ];
-     public function user()
+
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
@@ -40,5 +44,19 @@ class SocialAccounts extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class, 'account_id');
+    }
+
+    // Helper method to get Twitter credentials
+    public function getTwitterCredentials()
+    {
+        if ($this->platform !== 'twitter') {
+            return null;
+        }
+
+        return [
+            'email' => $this->account_email,
+            'username' => $this->account_username,
+            'password' => $this->account_password,
+        ];
     }
 }

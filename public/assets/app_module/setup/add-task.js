@@ -184,7 +184,7 @@ let TaskController = function () {
                     { data: "id", name: "id" },
                     { data: "current_date", name: "current_date" },
                     { data: "task_type", name: "task_type" },
-                    { data: "target_url", name: "target_url" },
+                    { data: "status", name: "status" },
                     { data: "scheduled_at", name: "scheduled_at" },
                     { data: "executed_at", name: "executed_at" },
                     {

@@ -28,6 +28,9 @@ Route::post('/checkLogin', [AuthController::class, 'checkLogin'])->name('checkLo
 //Home
 Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+     Route::get('/getAccountsByPlatform', [HomeController::class, 'getAccountsByPlatform'])->name('getAccountsByPlatform');
+    Route::get('/getTasksByStatus', [HomeController::class, 'getTasksByStatus'])->name('getTasksByStatus');
+    
     //Social Account
     Route::get('/socialAccount', [SocialAccountsController::class, 'index'])->name('socialAccount');
     Route::post('/createSocialAccounts', [SocialAccountsController::class, 'createSocialAccounts'])->name('createSocialAccounts');

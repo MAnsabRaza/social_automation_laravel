@@ -64,24 +64,6 @@ return new class extends Migration {
       // Foreign key
       $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
     });
-    // Create post_content table
-    Schema::create('post_content', function (Blueprint $table) {
-      $table->id();
-      $table->date('current_date');
-      $table->unsignedBigInteger('user_id');
-      
-      $table->unsignedBigInteger('account_id');
-      $table->string('title', 255)->nullable();
-      $table->text('content');
-      $table->text('media_urls')->nullable();
-      $table->text('hashtags')->nullable();
-      $table->boolean('spintax_enabled')->default(false);
-      $table->timestamps();
-
-      // Foreign key
-      $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-      $table->foreign('account_id')->references('id')->on('social_accounts')->onDelete('cascade');
-    });
 
     // Create tasks table
     Schema::create('tasks', function (Blueprint $table) {
@@ -94,6 +76,8 @@ return new class extends Migration {
       $table->text('content')->nullable();
       $table->text('hashtags')->nullable();
       $table->longText('media_urls')->nullable();
+      $table->string('status')->nullable();
+       $table->longText('comment')->nullable();
       $table->timestamp('scheduled_at')->nullable();
       $table->timestamp('executed_at')->nullable();
       $table->timestamps();

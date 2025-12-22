@@ -347,14 +347,6 @@
                                 <span class="font-medium">Task</span>
                             </a>
                         </li>
-                        <!-- Post Content -->
-                        <li>
-                            <a href="{{ route('post-content') }}" class="nav-item flex items-center px-4 py-3 text-gray-300 rounded-xl group
-           {{ request()->routeIs('post-content') ? 'bg-green-700 text-white' : '' }}">
-                                <i class="fas fa-pen-fancy mr-4 text-green-400 nav-icon text-lg"></i>
-                                <span class="font-medium">Post Content</span>
-                            </a>
-                        </li>
 
                         <!-- Captcha Setting -->
                         <li>
@@ -364,11 +356,6 @@
                                 <span class="font-medium">Captcha Setting</span>
                             </a>
                         </li>
-
-
-
-
-
                     </ul>
 
 

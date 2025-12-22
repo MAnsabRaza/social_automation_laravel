@@ -170,7 +170,7 @@
                             <th class="p-3">ID</th>
                             <th class="p-3">Current Date</th>
                             <th class="p-3">Task Type</th>
-                            <th class="p-3">Target Url</th>
+                            <th class="p-3">Status</th>
                             <th class="p-3">Scheduled At</th>
                             <th class="p-3">Executed At</th>
                             <th class="p-3 text-center">Actions</th>

@@ -221,41 +221,68 @@ class SocialAccountsController extends Controller
 
     public function startAccount($id)
     {
-        $account = SocialAccounts::findOrFail($id); // Removed ->with('proxy')
+        $account = SocialAccounts::findOrFail($id);
         $account->status = 'inprogress';
         $account->save();
 
-        $response = Http::timeout(120)->post('http://localhost:3000/login-social', [
+        // Prepare request data
+        $requestData = [
             'username' => $account->account_username,
             'password' => $account->account_password,
             'platform' => $account->platform,
             'account_id' => $account->id,
-            // Removed all proxy parameters
-        ]);
+        ];
 
-        $result = $response->json();
+        // Add Twitter-specific fields
+        if ($account->platform === 'twitter') {
+            $requestData['email'] = $account->account_email; // Email for step 1
+            $requestData['twitter_username'] = $account->account_username; // Username for step 2
+        }
 
-        if (isset($result['success']) && $result['success']) {
-            // Save cookies, auth token, and session data
-            $account->cookies = $result['cookies'] ?? null;
-            $account->auth_token = $result['authToken'] ?? null;
-            $account->session_data = $result['sessionData'] ?? null;
-            $account->last_login = now();
-            $account->status = 'active';
-            $account->save();
+        // Add TikTok-specific fields
+        if ($account->platform === 'tiktok') {
+            // TikTok uses email for login
+            $requestData['username'] = $account->account_email; // Email for login
+        }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Login successful and session saved'
-            ]);
-        } else {
+        try {
+            $response = Http::timeout(120)->post('http://localhost:3000/login-social', $requestData);
+            
+            $result = $response->json();
+
+            if (isset($result['success']) && $result['success']) {
+                // Save cookies, auth token, and session data
+                $account->cookies = isset($result['cookies']) ? json_encode($result['cookies']) : null;
+                $account->auth_token = $result['authToken'] ?? null;
+                $account->session_data = $result['sessionData'] ?? null;
+                $account->last_login = now();
+                $account->status = 'active';
+                $account->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login successful and session saved',
+                    'account_id' => $account->id,
+                    'platform' => $account->platform
+                ]);
+            } else {
+                $account->status = 'failed';
+                $account->save();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Login failed',
+                    'error' => $result['error'] ?? 'Unknown error'
+                ]);
+            }
+        } catch (\Exception $e) {
             $account->status = 'failed';
             $account->save();
 
             return response()->json([
                 'success' => false,
-                'message' => $result['error'] ?? 'Login failed'
-            ]);
+                'message' => 'Connection error: ' . $e->getMessage()
+            ], 500);
         }
     }
 
