@@ -8,7 +8,7 @@ use App\Models\SocialAccounts;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http; // <-- used to call Node API
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\File;
@@ -26,28 +26,19 @@ class TaskController extends Controller
     {
         $data = $request->all();
         $userId = Auth::id();
-        // $base64Image = null;
-        // if ($request->hasFile('media_urls')) {
-        //     $file = $request->file('media_urls');
-        //     $base64Image = "data:" . $file->getMimeType() . ";base64," . base64_encode(file_get_contents($file));
-        // }
-        $imagePath = null;
 
-        // ✅ IMAGE SAVE IN PUBLIC FOLDER
+        $imagePath = null;
         if ($request->hasFile('media_urls')) {
             $file = $request->file('media_urls');
 
             $fileName = 'task_' . time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
             $destinationPath = public_path('images/tasks');
 
-            // create folder if not exists
             if (!File::exists($destinationPath)) {
                 File::makeDirectory($destinationPath, 0755, true);
             }
 
             $file->move($destinationPath, $fileName);
-
-            // save RELATIVE path in DB
             $imagePath = 'images/tasks/' . $fileName;
         }
 
@@ -67,28 +58,37 @@ class TaskController extends Controller
                 $task->comment = $data['comment'] ?? null;
                 $task->save();
 
-                return redirect()->route('task')->with('success', 'task created successfully');
+                return redirect()->route('task')->with('success', 'task updated successfully');
             } else {
                 return redirect()->route('socialAccount')->with('error', 'task not found');
             }
         }
+
         $task = new Task();
         $task->current_date = $data['current_date'];
         $task->user_id = $userId;
         $task->account_id = $data['account_id'];
         $task->task_type = $data['task_type'];
-        $task->target_url = $data['target_url'];
+        $task->target_url = $data['target_url'] ?? null;
         $task->scheduled_at = $data['scheduled_at'];
         $task->executed_at = $data['executed_at'];
-        $task->content = $data['content'];
-        $task->hashtags = $data['hashtags'];
+        $task->content = $data['content'] ?? null;
+        $task->hashtags = $data['hashtags'] ?? null;
         $task->media_urls = $imagePath;
         $task->comment = $data['comment'] ?? null;
+        
+        // 🔥 Set status to 'running' for scroll/share tasks
+        if (in_array($task->task_type, ['scroll', 'share'])) {
+            $task->status = 'running';
+        } else {
+            $task->status = 'pending';
+        }
+        
         $task->save();
-        if (in_array($task->task_type, ['like', 'post', 'follow', 'unfollow', 'comment'])) {
+
+        if (in_array($task->task_type, ['like', 'post', 'follow', 'unfollow', 'comment', 'share', 'scroll'])) {
             $this->executeTask($task);
         }
-
 
         return redirect()->route('task')->with('success', 'task created successfully');
     }
@@ -111,6 +111,8 @@ class TaskController extends Controller
                 'hashtags' => $task->hashtags,
                 'media_urls' => $task->media_urls,
                 'comment' => $task->comment,
+                'likeChance' => 35,
+                'commentChance' => 10,
             ],
             'account' => [
                 'id' => $account->id,
@@ -125,14 +127,100 @@ class TaskController extends Controller
             ],
         ];
 
-        Http::timeout(120)->post(
-            'http://127.0.0.1:3000/execute-task',
-            $payload
-        );
+        try {
+            Http::timeout(120)->post(
+                'http://127.0.0.1:3000/execute-task',
+                $payload
+            );
 
-        $task->update(['executed_at' => now()]);
+            $task->update(['executed_at' => now()]);
+        } catch (\Exception $e) {
+            Log::error("Failed to execute task {$task->id}: " . $e->getMessage());
+        }
     }
 
+    // 🔥 NEW: Stop Scroll Bot
+    public function stopScroll(Request $request)
+    {
+        $accountId = $request->input('account_id');
+
+        if (!$accountId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'account_id is required'
+            ], 400);
+        }
+
+        try {
+            // Call Node.js API to stop the scroll bot
+            $response = Http::timeout(30)->post('http://127.0.0.1:3000/stop-scroll', [
+                'account_id' => $accountId
+            ]);
+
+            $result = $response->json();
+
+            if ($result['success']) {
+                // Update task status to 'completed'
+                Task::where('account_id', $accountId)
+                    ->whereIn('task_type', ['scroll', 'share'])
+                    ->where('status', 'running')
+                    ->update(['status' => 'completed']);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Scroll bot stopped successfully'
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Failed to stop scroll bot'
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error stopping scroll bot: " . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // 🔥 NEW: Get Scroll Bot Status
+    public function scrollStatus(Request $request)
+    {
+        $accountId = $request->input('account_id');
+
+        if (!$accountId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'account_id is required'
+            ], 400);
+        }
+
+        try {
+            // Call Node.js API to get scroll bot status
+            $response = Http::timeout(10)->post('http://127.0.0.1:3000/scroll-status', [
+                'account_id' => $accountId
+            ]);
+
+            $result = $response->json();
+
+            return response()->json([
+                'success' => true,
+                'isRunning' => $result['isRunning'] ?? false,
+                'stats' => $result['stats'] ?? null
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error getting scroll status: " . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'isRunning' => false,
+                'stats' => null
+            ]);
+        }
+    }
 
     public function getTaskData()
     {

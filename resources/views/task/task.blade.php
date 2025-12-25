@@ -76,6 +76,7 @@
                                 <option value="like">Like</option>
                                 <option value="follow">Follow</option>
                                 <option value="unfollow">Unfollow</option>
+                                <option value="share">Scroll</option>
                             </select>
                         </div>
 

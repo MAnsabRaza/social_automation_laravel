@@ -71,7 +71,7 @@ return new class extends Migration {
       $table->date('current_date');
       $table->unsignedBigInteger('user_id');
       $table->unsignedBigInteger('account_id');
-      $table->enum('task_type', ['post', 'comment', 'like', 'follow', 'unfollow', 'share', 'review']);
+      $table->enum('task_type', ['post', 'comment', 'like', 'follow', 'unfollow', 'scroll']);
       $table->string('target_url', 500)->nullable();
       $table->text('content')->nullable();
       $table->text('hashtags')->nullable();

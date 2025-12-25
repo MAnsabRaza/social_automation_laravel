@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     protected $table = 'tasks';
-    
+
     protected $fillable = [
         'current_date',
         'user_id',
@@ -20,13 +20,13 @@ class Task extends Model
         'hashtags',
         'media_urls',
         'comment',
-        'status', // Added status field
+        'status',
+        'error_message',
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
         'executed_at' => 'datetime',
-        'media_urls' => 'array',
         'hashtags' => 'array',
     ];
 
@@ -41,17 +41,20 @@ class Task extends Model
         return $this->belongsTo(SocialAccounts::class, 'account_id');
     }
 
-   
-
     // Scopes
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeQueued($query)
+    {
+        return $query->where('status', 'queued');
+    }
+
     public function scopeRunning($query)
     {
         return $query->where('status', 'running');
-    }
-
-    public function scopeScheduled($query)
-    {
-        return $query->where('status', 'scheduled');
     }
 
     public function scopeCompleted($query)
@@ -69,15 +72,28 @@ class Task extends Model
         return $query->where('user_id', $userId);
     }
 
+    public function scopeDueForExecution($query)
+    {
+        return $query->where('status', 'pending')
+            ->whereNotNull('executed_at')
+            ->where('executed_at', '<=', now())
+            ->orderBy('executed_at', 'asc');
+    }
+
     // Helper Methods
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isQueued()
+    {
+        return $this->status === 'queued';
+    }
+
     public function isRunning()
     {
         return $this->status === 'running';
-    }
-
-    public function isScheduled()
-    {
-        return $this->status === 'scheduled';
     }
 
     public function isCompleted()
@@ -90,6 +106,16 @@ class Task extends Model
         return $this->status === 'failed';
     }
 
+    public function markAsPending()
+    {
+        $this->update(['status' => 'pending', 'error_message' => null]);
+    }
+
+    public function markAsQueued()
+    {
+        $this->update(['status' => 'queued']);
+    }
+
     public function markAsRunning()
     {
         $this->update(['status' => 'running']);
@@ -99,15 +125,15 @@ class Task extends Model
     {
         $this->update([
             'status' => 'completed',
-            'executed_at' => now()
+            'error_message' => null
         ]);
     }
 
-    public function markAsFailed()
+    public function markAsFailed($errorMessage = null)
     {
         $this->update([
             'status' => 'failed',
-            'executed_at' => now()
+            'error_message' => $errorMessage
         ]);
     }
 }

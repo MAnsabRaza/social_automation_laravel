@@ -28,9 +28,9 @@ Route::post('/checkLogin', [AuthController::class, 'checkLogin'])->name('checkLo
 //Home
 Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
-     Route::get('/getAccountsByPlatform', [HomeController::class, 'a'])->name('getAccountsByPlatform');
+    Route::get('/getAccountsByPlatform', [HomeController::class, 'a'])->name('getAccountsByPlatform');
     Route::get('/getTasksByStatus', [HomeController::class, 'getTasksByStatus'])->name('getTasksByStatus');
-    
+
     //Social Account
     Route::get('/socialAccount', [SocialAccountsController::class, 'index'])->name('socialAccount');
     Route::post('/createSocialAccounts', [SocialAccountsController::class, 'createSocialAccounts'])->name('createSocialAccounts');
@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/startAccount/{id}', [SocialAccountsController::class, 'startAccount'])->name('startAccount');
     Route::get('/runAccount/{id}', [SocialAccountsController::class, 'runAccount'])->name('runAccount');
     Route::post('/stopAccount/{id}', [SocialAccountsController::class, 'stopAccount'])->name('stopAccount');
-     Route::get('/checkAccountStatus/{id}', [SocialAccountsController::class, 'checkAccountStatus'])
+    Route::get('/checkAccountStatus/{id}', [SocialAccountsController::class, 'checkAccountStatus'])
         ->name('checkAccountStatus');
     //stopAccount
     Route::get('/proxy', [ProxyController::class, 'index'])->name('proxy');
@@ -63,7 +63,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/fetchTaskData/{id}', [TaskController::class, 'fetchTaskData'])->name('fetchTaskData');
     Route::get('/getTaskData', [TaskController::class, 'getTaskData'])->name('getTaskData');
     Route::delete('/deleteTask/{id}', [TaskController::class, 'deleteTask'])->name('deleteTask');
-
+    Route::post('/stop-scroll', [TaskController::class, 'stopScroll'])->name('stopScroll');
+    Route::post('/scroll-status', [TaskController::class, 'scrollStatus'])->name('scrollStatus');
     //post-content
     Route::get('/post-content', [PostContentController::class, 'index'])->name('post-content');
     Route::post('/createPostContent', [PostContentController::class, 'createPostContent'])->name('createPostContent');
