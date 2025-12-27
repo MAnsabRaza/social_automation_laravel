@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+          Schema::table('social_accounts', function (Blueprint $table) {
+            // Change these columns to LONGTEXT to handle large session data
+            $table->longText('cookies')->nullable()->change();
+            $table->longText('session_data')->nullable()->change();
+            $table->longText('auth_token')->nullable()->change();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('social_accounts', function (Blueprint $table) {
+            $table->text('cookies')->nullable()->change();
+            $table->text('session_data')->nullable()->change();
+            $table->text('auth_token')->nullable()->change();
+        });
+    }
+};

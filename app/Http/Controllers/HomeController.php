@@ -36,7 +36,7 @@ class HomeController extends Controller
             ->where('status', 'running')
             ->count();
         $data['scheduledTasks'] = Task::where('user_id', $userId)
-            ->where('status', 'scheduled')
+            ->where('status', 'pending')
             ->count();
         $data['completedTasks'] = Task::where('user_id', $userId)
             ->where('status', 'completed')

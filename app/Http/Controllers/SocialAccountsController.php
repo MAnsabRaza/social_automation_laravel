@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 ;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Http;
+use Log;
 
 class SocialAccountsController extends Controller
 {
@@ -219,7 +220,7 @@ class SocialAccountsController extends Controller
     //     }
     // }
 
-    public function startAccount($id)
+      public function startAccount($id)
     {
         $account = SocialAccounts::findOrFail($id);
         $account->status = 'inprogress';
@@ -235,35 +236,67 @@ class SocialAccountsController extends Controller
 
         // Add Twitter-specific fields
         if ($account->platform === 'twitter') {
-            $requestData['email'] = $account->account_email; // Email for step 1
-            $requestData['twitter_username'] = $account->account_username; // Username for step 2
+            $requestData['email'] = $account->account_email;
+            $requestData['twitter_username'] = $account->account_username;
         }
 
         // Add TikTok-specific fields
         if ($account->platform === 'tiktok') {
-            // TikTok uses email for login
-            $requestData['username'] = $account->account_email; // Email for login
+            $requestData['email'] = $account->account_email;
+            // Override username with email for TikTok login
+            $requestData['username'] = $account->account_email;
         }
 
         try {
             $response = Http::timeout(120)->post('http://localhost:3000/login-social', $requestData);
             
+            if (!$response->successful()) {
+                throw new \Exception('Node.js server returned error: ' . $response->status());
+            }
+
             $result = $response->json();
 
             if (isset($result['success']) && $result['success']) {
-                // Save cookies, auth token, and session data
-                $account->cookies = isset($result['cookies']) ? json_encode($result['cookies']) : null;
-                $account->auth_token = $result['authToken'] ?? null;
-                $account->session_data = $result['sessionData'] ?? null;
-                $account->last_login = now();
-                $account->status = 'active';
-                $account->save();
+                // Prepare data for database
+                $updateData = [
+                    'last_login' => now(),
+                    'status' => 'active',
+                ];
+
+                // Only update if data exists and is not empty
+                if (isset($result['cookies']) && !empty($result['cookies'])) {
+                    $updateData['cookies'] = is_array($result['cookies']) 
+                        ? json_encode($result['cookies']) 
+                        : $result['cookies'];
+                }
+
+                if (isset($result['authToken']) && !empty($result['authToken'])) {
+                    $updateData['auth_token'] = $result['authToken'];
+                }
+
+                if (isset($result['sessionData']) && !empty($result['sessionData'])) {
+                    $updateData['session_data'] = is_array($result['sessionData']) 
+                        ? json_encode($result['sessionData']) 
+                        : $result['sessionData'];
+                }
+
+                // Log what we're about to save
+                Log::info("Saving TikTok session data", [
+                    'account_id' => $account->id,
+                    'cookies_length' => isset($updateData['cookies']) ? strlen($updateData['cookies']) : 0,
+                    'session_data_length' => isset($updateData['session_data']) ? strlen($updateData['session_data']) : 0,
+                    'has_auth_token' => isset($updateData['auth_token'])
+                ]);
+
+                // Update the account
+                $account->update($updateData);
 
                 return response()->json([
                     'success' => true,
                     'message' => 'Login successful and session saved',
                     'account_id' => $account->id,
-                    'platform' => $account->platform
+                    'platform' => $account->platform,
+                    'cookies_count' => isset($result['cookies']) ? count($result['cookies']) : 0
                 ]);
             } else {
                 $account->status = 'failed';
@@ -275,13 +308,31 @@ class SocialAccountsController extends Controller
                     'error' => $result['error'] ?? 'Unknown error'
                 ]);
             }
-        } catch (\Exception $e) {
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
             $account->status = 'failed';
             $account->save();
+            
+            Log::error('Node.js Connection Error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Connection error: ' . $e->getMessage()
+                'message' => 'Could not connect to automation server. Make sure Node.js server is running on port 3000.'
+            ], 500);
+
+        } catch (\Exception $e) {
+            $account->status = 'failed';
+            $account->save();
+            
+            Log::error('Social Account Start Error: ' . $e->getMessage(), [
+                'account_id' => $id,
+                'platform' => $account->platform,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
     }

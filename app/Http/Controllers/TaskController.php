@@ -78,7 +78,7 @@ class TaskController extends Controller
         $task->comment = $data['comment'] ?? null;
         
         // 🔥 Set status to 'running' for scroll/share tasks
-        if (in_array($task->task_type, ['scroll', 'share'])) {
+        if (in_array($task->task_type, ['scroll'])) {
             $task->status = 'running';
         } else {
             $task->status = 'pending';
@@ -86,7 +86,7 @@ class TaskController extends Controller
         
         $task->save();
 
-        if (in_array($task->task_type, ['like', 'post', 'follow', 'unfollow', 'comment', 'share', 'scroll'])) {
+        if (in_array($task->task_type, ['like', 'post', 'follow', 'unfollow', 'comment', 'scroll'])) {
             $this->executeTask($task);
         }
 
@@ -162,7 +162,7 @@ class TaskController extends Controller
             if ($result['success']) {
                 // Update task status to 'completed'
                 Task::where('account_id', $accountId)
-                    ->whereIn('task_type', ['scroll', 'share'])
+                    ->whereIn('task_type', ['scroll'])
                     ->where('status', 'running')
                     ->update(['status' => 'completed']);
 
