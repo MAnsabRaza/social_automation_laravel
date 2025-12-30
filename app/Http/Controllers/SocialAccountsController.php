@@ -18,6 +18,7 @@ class SocialAccountsController extends Controller
     public function index()
     {
         $data['proxy'] = Proxy::where('is_active', 1)->get();
+         $data['accounts'] = SocialAccounts::all();
         $data['modules'] = ['setup/add-social-account.js'];
         return view('social-account/social-account', $data);
     }
@@ -248,7 +249,8 @@ class SocialAccountsController extends Controller
         }
 
         try {
-            $response = Http::timeout(120)->post('http://localhost:3000/login-social', $requestData);
+            $response = Http::timeout(1)->post('http://localhost:3000/login-social', $requestData);
+
             
             if (!$response->successful()) {
                 throw new \Exception('Node.js server returned error: ' . $response->status());

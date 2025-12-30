@@ -78,7 +78,7 @@ let SocialAccountController = function () {
                     Toastify({
                         text: res.message || "Not found",
                         backgroundColor: "#f44336",
-                        duration: 3000
+                        duration: 3000,
                     }).showToast();
                 }
             },
@@ -86,7 +86,7 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Error loading data",
                     backgroundColor: "#f44336",
-                    duration: 3000
+                    duration: 3000,
                 }).showToast();
             },
         });
@@ -96,7 +96,9 @@ let SocialAccountController = function () {
     const startAccount = function (id, $button) {
         // Disable button and show loading
         if ($button) {
-            $button.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i>');
+            $button
+                .prop("disabled", true)
+                .html('<i class="fa-solid fa-spinner fa-spin"></i>');
         }
 
         $.ajax({
@@ -110,34 +112,40 @@ let SocialAccountController = function () {
                     Toastify({
                         text: "✅ Login successful! Session saved.",
                         backgroundColor: "#4BB543",
-                        duration: 3000
+                        duration: 3000,
                     }).showToast();
 
                     // Reload table to show updated status
                     table.ajax.reload(null, false);
                 } else {
                     Toastify({
-                        text: "❌ Login failed: " + (res.message || 'Unknown error'),
+                        text:
+                            "❌ Login failed: " +
+                            (res.message || "Unknown error"),
                         backgroundColor: "#f44336",
-                        duration: 4000
+                        duration: 4000,
                     }).showToast();
                 }
-                
+
                 // Re-enable button
                 if ($button) {
-                    $button.prop('disabled', false).html('<i class="fa-solid fa-play"></i>');
+                    $button
+                        .prop("disabled", false)
+                        .html('<i class="fa-solid fa-play"></i>');
                 }
             },
             error: function (xhr) {
                 Toastify({
                     text: "❌ Request failed. Please try again.",
                     backgroundColor: "#f44336",
-                    duration: 3000
+                    duration: 3000,
                 }).showToast();
-                
+
                 // Re-enable button
                 if ($button) {
-                    $button.prop('disabled', false).html('<i class="fa-solid fa-play"></i>');
+                    $button
+                        .prop("disabled", false)
+                        .html('<i class="fa-solid fa-play"></i>');
                 }
             },
         });
@@ -153,18 +161,20 @@ let SocialAccountController = function () {
             },
             success: function (res) {
                 if (res.success) {
-                    const statusText = res.is_logged_in 
-                        ? "✅ Account is logged in (Session active)" 
+                    const statusText = res.is_logged_in
+                        ? "✅ Account is logged in (Session active)"
                         : "⚠️ Account session expired";
-                    
-                    const lastLogin = res.last_login 
-                        ? new Date(res.last_login).toLocaleString() 
+
+                    const lastLogin = res.last_login
+                        ? new Date(res.last_login).toLocaleString()
                         : "Never";
-                    
+
                     Toastify({
                         text: `${statusText}\nLast login: ${lastLogin}`,
-                        backgroundColor: res.is_logged_in ? "#4BB543" : "#FFA500",
-                        duration: 5000
+                        backgroundColor: res.is_logged_in
+                            ? "#4BB543"
+                            : "#FFA500",
+                        duration: 5000,
                     }).showToast();
                 }
             },
@@ -172,7 +182,7 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Failed to check status",
                     backgroundColor: "#f44336",
-                    duration: 3000
+                    duration: 3000,
                 }).showToast();
             },
         });
@@ -190,7 +200,7 @@ let SocialAccountController = function () {
                     Toastify({
                         text: "Account stopped successfully",
                         backgroundColor: "#4BB543",
-                        duration: 3000
+                        duration: 3000,
                     }).showToast();
 
                     table.ajax.reload();
@@ -200,7 +210,7 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Failed to stop account",
                     backgroundColor: "#f44336",
-                    duration: 3000
+                    duration: 3000,
                 }).showToast();
             },
         });
@@ -220,7 +230,7 @@ let SocialAccountController = function () {
                     Toastify({
                         text: res.message,
                         backgroundColor: "#4BB543",
-                        duration: 3000
+                        duration: 3000,
                     }).showToast();
                     table.ajax.reload();
                 }
@@ -229,7 +239,7 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Delete failed",
                     backgroundColor: "#f44336",
-                    duration: 3000
+                    duration: 3000,
                 }).showToast();
             },
         });
@@ -259,25 +269,28 @@ let SocialAccountController = function () {
             {
                 data: "last_login",
                 render: function (data, type, row) {
-                    if (!data) return '<span class="text-gray-400 text-xs">Never</span>';
-                    
+                    if (!data)
+                        return '<span class="text-gray-400 text-xs">Never</span>';
+
                     const loginDate = new Date(data);
                     const now = new Date();
-                    const hoursDiff = Math.floor((now - loginDate) / (1000 * 60 * 60));
-                    
-                    let statusIcon = '';
-                    let statusClass = '';
-                    
+                    const hoursDiff = Math.floor(
+                        (now - loginDate) / (1000 * 60 * 60)
+                    );
+
+                    let statusIcon = "";
+                    let statusClass = "";
+
                     if (hoursDiff < 24) {
-                        statusIcon = '🟢';
-                        statusClass = 'text-green-600';
+                        statusIcon = "🟢";
+                        statusClass = "text-green-600";
                     } else {
-                        statusIcon = '🔴';
-                        statusClass = 'text-red-600';
+                        statusIcon = "🔴";
+                        statusClass = "text-red-600";
                     }
-                    
+
                     return `<span class="${statusClass} text-xs">${statusIcon} ${loginDate.toLocaleString()}</span>`;
-                }
+                },
             },
             { data: "proxy_id" },
             {
@@ -387,7 +400,7 @@ let SocialAccountController = function () {
     });
 
     // ========== EVENT LISTENERS ==========
-    
+
     // Start button with enhanced session saving
     $("#social_account_table").on("click", ".start-btn", function () {
         const accountId = $(this).data("id");
@@ -418,6 +431,49 @@ let SocialAccountController = function () {
     $("#csvFileInput").on("change", function () {
         if (this.files.length > 0) $("#csvImportForm").submit();
     });
+    $("#startSelectedAccounts").on("click", function () {
+        const accountIds = $("#accountSelect").val(); // array
+
+        if (!accountIds || accountIds.length === 0) {
+            Toastify({
+                text: "⚠️ Select at least one account",
+                backgroundColor: "#FFA500",
+                duration: 3000,
+            }).showToast();
+            return;
+        }
+
+        Toastify({
+            text: `🚀 Starting ${accountIds.length} accounts`,
+            backgroundColor: "#4BB543",
+            duration: 3000,
+        }).showToast();
+
+        // RUN ALL REQUESTS AT THE SAME TIME
+        Promise.all(
+            accountIds.map((accountId) =>
+                $.ajax({
+                    url: `/startAccount/${accountId}`,
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
+                            "content"
+                        ),
+                    },
+                })
+            )
+        )
+            .then(() => {
+                table.ajax.reload(null, false);
+            })
+            .catch(() => {
+                Toastify({
+                    text: "❌ Some accounts failed",
+                    backgroundColor: "#f44336",
+                    duration: 3000,
+                }).showToast();
+            });
+    });
 
     $("#socialAccountForm").on("submit", function (e) {
         e.preventDefault();
@@ -429,7 +485,7 @@ let SocialAccountController = function () {
                 Toastify({
                     text: "Saved successfully!",
                     backgroundColor: "#4BB543",
-                    duration: 3000
+                    duration: 3000,
                 }).showToast();
 
                 table.ajax.reload();
@@ -442,39 +498,41 @@ let SocialAccountController = function () {
                 Toastify({
                     text: err.responseJSON?.message || "An error occurred",
                     backgroundColor: "#f44336",
-                    duration: 3000
+                    duration: 3000,
                 }).showToast();
             },
         });
     });
 
     // ========== POST CONTENT FORM WITH SESSION CHECK ==========
-    $("#postContentForm").on("submit", function(e) {
+    $("#postContentForm").on("submit", function (e) {
         const accountId = $("#account_id").val();
-        
+
         if (!accountId) {
             e.preventDefault();
             Toastify({
                 text: "⚠️ Please select an account",
                 backgroundColor: "#FFA500",
-                duration: 3000
+                duration: 3000,
             }).showToast();
             return false;
         }
-        
+
         // Show loading indicator
         const $submitBtn = $(this).find('button[type="submit"]');
         const originalText = $submitBtn.html();
-        $submitBtn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Publishing...');
-        
+        $submitBtn
+            .prop("disabled", true)
+            .html('<i class="fa-solid fa-spinner fa-spin"></i> Publishing...');
+
         // Re-enable after 2 seconds (will be handled by page reload/redirect)
         setTimeout(() => {
-            $submitBtn.prop('disabled', false).html(originalText);
+            $submitBtn.prop("disabled", false).html(originalText);
         }, 120000); // 2 minutes timeout
     });
 };
 
 // Initialize the controller
-$(document).ready(function() {
+$(document).ready(function () {
     const socialAccount = new SocialAccountController();
 });

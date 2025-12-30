@@ -86,6 +86,8 @@
                                 <option value="linkedin">linkedin</option>
                                 <option value="twitter">twitter</option>
                                 <option value="tiktok">tiktok</option>
+                                <option value="trustpilot">Trustpilot</option>
+                                <option value="google_business">Google Business</option>
                             </select>
 
                         </div>
@@ -207,6 +209,7 @@
             </div>
 
 
+            
 
             <div class="flex justify-between items-center">
                 <h2 class="text-2xl font-bold text-blue-800">Social Accounts</h2>
@@ -215,6 +218,32 @@
                     <i class="fa-solid fa-plus mr-1"></i>Add New
                 </button>
             </div>
+            <div class="flex items-center gap-4 mt-4">
+
+    <!-- MULTI SELECT DROPDOWN -->
+    <select id="accountSelect" multiple
+        class="w-96 p-2 border rounded-xl shadow-sm focus:ring focus:ring-blue-300">
+
+        @foreach($accounts as $account)
+            <option value="{{ $account->id }}">
+                {{ strtoupper($account->platform) }} - {{ $account->account_username }}
+            </option>
+        @endforeach
+
+    </select>
+
+    <!-- START BUTTON -->
+    <button id="startSelectedAccounts"
+        class="px-6 py-2 rounded-xl bg-blue-600 text-white shadow-md hover:bg-blue-700">
+        <i class="fa-solid fa-play mr-1"></i>Start Selected
+    </button>
+
+</div>
+
+<p class="text-sm text-gray-500 mt-1">
+    Hold <b>Ctrl</b> (Windows) or <b>Cmd</b> (Mac) to select multiple accounts
+</p>
+
 
             <!-- Table -->
             <div class="overflow-x-hidden mt-6 border rounded-lg">
