@@ -7,8 +7,9 @@ let TaskController = function () {
     const $taskType = $("#task_type");
     const $postFields = $("#post-fields");
     const $commentFields = $("#comment-fields");
+    const $executedAt = $("#executed_at");
 
-    // 🔥 Track active scroll bots
+    // Track active scroll bots
     const activeScrollBots = new Set();
 
     function showFormTab() {
@@ -35,10 +36,14 @@ let TaskController = function () {
 
     $tabForm.on("click", showFormTab);
     $tabList.on("click", showListTab);
+
     $btnAddNew.on("click", () => {
         showFormTab();
-        $("#proxyForm")[0].reset();
-        $("#proxy_id").val("");
+        $("#taskForm")[0].reset();
+        $("#task_id").val("");
+        $("#previewImage").addClass("hidden");
+        toggleTaskFields(null);
+        setMinimumExecutionTime();
     });
 
     function toggleTaskFields(type) {
@@ -60,6 +65,48 @@ let TaskController = function () {
         toggleTaskFields($(this).val());
     });
 
+    // Set minimum execution time to current time
+    function setMinimumExecutionTime() {
+        const now = new Date();
+        // Add 1 minute buffer to ensure it's in the future
+        now.setMinutes(now.getMinutes() + 1);
+        
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        $executedAt.attr('min', minDateTime);
+        
+        // If field is empty, set it to minimum time
+        if (!$executedAt.val()) {
+            $executedAt.val(minDateTime);
+        }
+    }
+
+    // Validate execution time before submission
+    function validateExecutionTime() {
+        const selectedTime = new Date($executedAt.val());
+        const now = new Date();
+        
+        if (selectedTime < now) {
+            Toastify({
+                text: "⚠️ Execution time cannot be in the past. Please select current or future time.",
+                duration: 4000,
+                close: true,
+                gravity: "top",
+                position: "right",
+                stopOnFocus: true,
+                backgroundColor: "#f44336",
+            }).showToast();
+            return false;
+        }
+        
+        return true;
+    }
+
     const populateData = function (elem) {
         $("#current_date").val(elem.current_date);
         $("#task_id").val(elem.id);
@@ -67,13 +114,27 @@ let TaskController = function () {
         $("#task_type").val(elem.task_type);
         $("#target_url").val(elem.target_url);
         $("#scheduled_at").val(elem.scheduled_at);
-        $("#executed_at").val(elem.executed_at);
+        
+        // Format executed_at for datetime-local input
+        if (elem.executed_at) {
+            const date = new Date(elem.executed_at);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            $("#executed_at").val(`${year}-${month}-${day}T${hours}:${minutes}`);
+        }
+        
         $("#content").val(elem.content);
         $("#hashtags").val(elem.hashtags);
         $("#comment").val(elem.comment);
-        if (elem.media_urls) {
-            $("#previewImage").attr("src", elem.media_urls).removeClass("hidden");
+        
+        if (elem.media_urls_full) {
+            $("#previewImage").attr("src", elem.media_urls_full).removeClass("hidden");
         }
+        
+        toggleTaskFields(elem.task_type);
     };
 
     const fetchTaskData = async (id) => {
@@ -86,11 +147,10 @@ let TaskController = function () {
             },
             success: function (response) {
                 if (response.data) {
-                    console.log(response.data);
                     populateData(response.data);
                 } else {
                     Toastify({
-                        text: "Data not found for this Gallery ID",
+                        text: "Data not found for this task",
                         duration: 3000,
                         close: true,
                         gravity: "top",
@@ -98,12 +158,11 @@ let TaskController = function () {
                         stopOnFocus: true,
                         backgroundColor: "#f44336",
                     }).showToast();
-                    resetField();
                 }
             },
             error: function (error) {
                 Toastify({
-                    text: error.responseJSON.message,
+                    text: error.responseJSON?.message || "Error fetching task",
                     duration: 3000,
                     close: true,
                     gravity: "top",
@@ -135,12 +194,12 @@ let TaskController = function () {
                         stopOnFocus: true,
                         backgroundColor: "#4BB543",
                     }).showToast();
-                    window.location.reload();
+                    table.ajax.reload();
                 }
             },
             error: function (err) {
                 Toastify({
-                    text: err.responseJSON.message,
+                    text: err.responseJSON?.message || "Error deleting task",
                     duration: 3000,
                     close: true,
                     gravity: "top",
@@ -152,7 +211,6 @@ let TaskController = function () {
         });
     };
 
-    // 🔥 NEW: Stop Scroll Bot Function
     const stopScrollBot = function (accountId, $button) {
         $.ajax({
             type: "POST",
@@ -174,16 +232,12 @@ let TaskController = function () {
                         backgroundColor: "#4BB543",
                     }).showToast();
 
-                    // Remove from tracking
                     activeScrollBots.delete(accountId);
-
-                    // Update button UI
                     $button.removeClass("bg-red-600 hover:bg-red-700");
                     $button.addClass("bg-gray-400 cursor-not-allowed");
                     $button.prop("disabled", true);
                     $button.html('<i class="fa-solid fa-stop-circle"></i> Stopped');
 
-                    // Reload table after 2 seconds
                     setTimeout(() => {
                         table.ajax.reload();
                     }, 2000);
@@ -213,7 +267,6 @@ let TaskController = function () {
         });
     };
 
-    // 🔥 NEW: Get Scroll Bot Status
     const getScrollStatus = function (accountId, $statusElement) {
         $.ajax({
             type: "POST",
@@ -238,17 +291,16 @@ let TaskController = function () {
         });
     };
 
-    $btnAddNew.on("click", () => {
-        showFormTab();
-        $("#taskForm")[0].reset();
-        $("#task_id").val("");
-        toggleTaskFields(null);
-    });
-
     let table;
 
     return {
         init: function () {
+            // Set minimum execution time on page load
+            setMinimumExecutionTime();
+            
+            // Update minimum time every minute
+            setInterval(setMinimumExecutionTime, 60000);
+
             table = $("#task_table").DataTable({
                 autoWidth: false,
                 processing: true,
@@ -263,15 +315,48 @@ let TaskController = function () {
                         name: "status",
                         render: function(data, type, row) {
                             let badgeClass = "bg-gray-500";
-                            if (data === "completed") badgeClass = "bg-green-500";
-                            if (data === "running") badgeClass = "bg-blue-500";
-                            if (data === "failed") badgeClass = "bg-red-500";
+                            let icon = "";
                             
-                            return `<span class="px-2 py-1 rounded text-white text-xs ${badgeClass}">${data}</span>`;
+                            if (data === "completed") {
+                                badgeClass = "bg-green-500";
+                                icon = "✓";
+                            }
+                            if (data === "running") {
+                                badgeClass = "bg-blue-500";
+                                icon = "▶";
+                            }
+                            if (data === "failed") {
+                                badgeClass = "bg-red-500";
+                                icon = "✗";
+                            }
+                            if (data === "pending") {
+                                badgeClass = "bg-yellow-500";
+                                icon = "⏳";
+                            }
+                            
+                            return `<span class="px-2 py-1 rounded text-white text-xs ${badgeClass}">${icon} ${data}</span>`;
                         }
                     },
                     { data: "scheduled_at", name: "scheduled_at" },
-                    { data: "executed_at", name: "executed_at" },
+                    { 
+                        data: "executed_at", 
+                        name: "executed_at",
+                        render: function(data, type, row) {
+                            if (!data || data === 'N/A') return 'N/A';
+                            
+                            const executeTime = new Date(data);
+                            const now = new Date();
+                            const isPast = executeTime < now;
+                            const isFuture = executeTime > now;
+                            
+                            let colorClass = '';
+                            if (isPast) colorClass = 'text-red-600';
+                            else if (isFuture) colorClass = 'text-blue-600';
+                            else colorClass = 'text-green-600';
+                            
+                            return `<span class="${colorClass}">${data}</span>`;
+                        }
+                    },
                     {
                         data: null,
                         render: function (data, type, row) {
@@ -284,7 +369,6 @@ let TaskController = function () {
                                 </button>
                             `;
 
-                            // 🔥 Add STOP button for scroll/share tasks
                             if ((row.task_type === "scroll" || row.task_type === "share") && row.status === "running") {
                                 buttons += `
                                     <button class="stop-scroll-btn px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 ml-1" 
@@ -302,16 +386,13 @@ let TaskController = function () {
                     },
                 ],
                 drawCallback: function() {
-                    // 🔥 Update status for running scroll bots every 5 seconds
                     $(".stop-scroll-btn").each(function() {
                         const accountId = $(this).data("account-id");
                         const $statusElement = $(`.scroll-status-${accountId}`);
                         
                         if ($statusElement.length) {
-                            // Initial status check
                             getScrollStatus(accountId, $statusElement);
                             
-                            // Update every 5 seconds
                             const intervalId = setInterval(() => {
                                 if ($(this).prop("disabled")) {
                                     clearInterval(intervalId);
@@ -324,42 +405,29 @@ let TaskController = function () {
                 }
             });
 
-            // Submit form via AJAX
-            $("#task_table").submit(function (e) {
-                e.preventDefault();
-                $.ajax({
-                    url: $(this).attr("action"),
-                    method: "POST",
-                    data: $(this).serialize(),
-                    success: function (res) {
-                        if (res.success) {
-                            alert(res.message);
-                            table.ajax.reload();
-                            $("#task_table")[0].reset();
-                            $("#task_id").val("");
-                            showListTab();
-                        }
-                    },
-                    error: function (err) {
-                        alert(err.responseJSON?.message || "Error occurred");
-                    },
-                });
+            // Form submission with validation
+            $("#taskForm").submit(function (e) {
+                // Validate execution time
+                if (!validateExecutionTime()) {
+                    e.preventDefault();
+                    return false;
+                }
             });
 
-            // Edit
+            // Edit button
             $("#task_table").on("click", ".edit-btn", function () {
                 const id = $(this).data("id");
                 fetchTaskData(id);
                 showFormTab();
             });
 
-            // Delete
+            // Delete button
             $("#task_table").on("click", ".delete-btn", function () {
                 const id = $(this).data("id");
                 deleteTaskData(id);
             });
 
-            // 🔥 NEW: Stop Scroll Bot
+            // Stop scroll button
             $("#task_table").on("click", ".stop-scroll-btn", function () {
                 const accountId = $(this).data("account-id");
                 const $button = $(this);
@@ -369,8 +437,18 @@ let TaskController = function () {
                 }
             });
 
+            // Refresh button
             $("#refresh-btn").on("click", function () {
-                window.location.reload();
+                table.ajax.reload();
+                Toastify({
+                    text: "🔄 Table refreshed!",
+                    duration: 2000,
+                    close: true,
+                    gravity: "top",
+                    position: "right",
+                    stopOnFocus: true,
+                    backgroundColor: "#4BB543",
+                }).showToast();
             });
         },
     };

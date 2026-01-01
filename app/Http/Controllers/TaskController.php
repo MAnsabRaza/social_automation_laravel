@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\File;
+use Carbon\Carbon;
 
 class TaskController extends Controller
 {
@@ -22,15 +23,16 @@ class TaskController extends Controller
         return view('task/task', $data);
     }
 
-    public function createTask(Request $request)
+      public function createTask(Request $request)
     {
-        $data = $request->all();
+        $data   = $request->all();
         $userId = Auth::id();
+
+        /* ---------------- Image Upload ---------------- */
 
         $imagePath = null;
         if ($request->hasFile('media_urls')) {
             $file = $request->file('media_urls');
-
             $fileName = 'task_' . time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
             $destinationPath = public_path('images/tasks');
 
@@ -42,63 +44,119 @@ class TaskController extends Controller
             $imagePath = 'images/tasks/' . $fileName;
         }
 
-        if (isset($data['id'])) {
-            $task = Task::find($data['id']);
-            if ($task) {
-                $task->current_date = $data['current_date'];
-                $task->user_id = $userId;
-                $task->account_id = $data['account_id'];
-                $task->task_type = $data['task_type'];
-                $task->target_url = $data['target_url'] ?? null;
-                $task->scheduled_at = $data['scheduled_at'];
-                $task->executed_at = $data['executed_at'];
-                $task->content = $data['content'] ?? null;
-                $task->hashtags = $data['hashtags'] ?? null;
-                $task->media_urls = $imagePath;
-                $task->comment = $data['comment'] ?? null;
-                $task->save();
+        /* =====================================================
+           UPDATE TASK
+        ===================================================== */
 
-                return redirect()->route('task')->with('success', 'task updated successfully');
-            } else {
-                return redirect()->route('socialAccount')->with('error', 'task not found');
+        if (!empty($data['id'])) {
+
+            $task = Task::find($data['id']);
+
+            if (!$task) {
+                return redirect()->route('task')->with('error', 'Task not found');
             }
+
+            $task->current_date = $data['current_date'];
+            $task->user_id      = $userId;
+            $task->account_id   = $data['account_id'];
+            $task->task_type    = $data['task_type'];
+            $task->target_url   = $data['target_url'] ?? null;
+
+            // ✅ TIME FIX (IMPORTANT)
+            $task->scheduled_at = Carbon::parse(
+                $data['scheduled_at'],
+                config('app.timezone')
+            )->startOfMinute();
+
+            $task->executed_at = Carbon::parse(
+                $data['executed_at'],
+                config('app.timezone')
+            )->startOfMinute();
+
+            $task->content    = $data['content'] ?? null;
+            $task->hashtags   = $data['hashtags'] ?? null;
+            $task->media_urls = $imagePath ?? $task->media_urls;
+            $task->comment    = $data['comment'] ?? null;
+
+            // ✅ STATUS LOGIC
+            if (in_array($task->task_type, ['scroll'])) {
+                $task->status = 'running';
+            } else {
+                $task->status = $task->isDue() ? 'running' : 'pending';
+            }
+
+            $task->save();
+
+            if ($task->status === 'running') {
+                $this->executeTask($task);
+            }
+
+            return redirect()->route('task')->with('success', 'Task updated successfully');
         }
 
+        /* =====================================================
+           CREATE TASK
+        ===================================================== */
+
         $task = new Task();
+
         $task->current_date = $data['current_date'];
-        $task->user_id = $userId;
-        $task->account_id = $data['account_id'];
-        $task->task_type = $data['task_type'];
-        $task->target_url = $data['target_url'] ?? null;
-        $task->scheduled_at = $data['scheduled_at'];
-        $task->executed_at = $data['executed_at'];
-        $task->content = $data['content'] ?? null;
-        $task->hashtags = $data['hashtags'] ?? null;
+        $task->user_id      = $userId;
+        $task->account_id   = $data['account_id'];
+        $task->task_type    = $data['task_type'];
+        $task->target_url   = $data['target_url'] ?? null;
+
+        // ✅ TIME FIX (IMPORTANT)
+        $task->scheduled_at = Carbon::parse(
+            $data['scheduled_at'],
+            config('app.timezone')
+        )->startOfMinute();
+
+        $task->executed_at = Carbon::parse(
+            $data['executed_at'],
+            config('app.timezone')
+        )->startOfMinute();
+
+        $task->content    = $data['content'] ?? null;
+        $task->hashtags   = $data['hashtags'] ?? null;
         $task->media_urls = $imagePath;
-        $task->comment = $data['comment'] ?? null;
-        
-        // 🔥 Set status to 'running' for scroll/share tasks
+        $task->comment    = $data['comment'] ?? null;
+
+        // ✅ STATUS LOGIC
         if (in_array($task->task_type, ['scroll'])) {
             $task->status = 'running';
         } else {
-            $task->status = 'pending';
+            $task->status = $task->isDue() ? 'running' : 'pending';
         }
-        
+
         $task->save();
 
-        if (in_array($task->task_type, ['like', 'post', 'follow', 'unfollow', 'comment', 'scroll'])) {
+        Log::info('Task created', [
+            'task_id'      => $task->id,
+            'status'       => $task->status,
+            'executed_at'  => $task->executed_at,
+            'scheduled_at'=> $task->scheduled_at,
+        ]);
+
+        if ($task->status === 'running') {
             $this->executeTask($task);
         }
 
-        return redirect()->route('task')->with('success', 'task created successfully');
+        return redirect()->route('task')->with('success', 'Task created successfully');
     }
+
+    /* =====================================================
+       EXECUTION LOGIC
+    ===================================================== */
 
     private function executeTask(Task $task)
     {
+        Log::info("Executing task {$task->id}");
+
         $account = SocialAccounts::with('proxy')->find($task->account_id);
 
         if (!$account) {
-            Log::error("Account not found for task {$task->id}");
+            $task->markAsFailed('Account not found');
             return;
         }
 
@@ -109,37 +167,30 @@ class TaskController extends Controller
                 'target_url' => $task->target_url,
                 'content' => $task->content,
                 'hashtags' => $task->hashtags,
-                'media_urls' => $task->media_urls,
+                'media_urls' => $task->media_urls ? asset($task->media_urls) : null,
                 'comment' => $task->comment,
-                'likeChance' => 35,
-                'commentChance' => 10,
             ],
             'account' => [
                 'id' => $account->id,
                 'platform' => $account->platform,
                 'session_data' => $account->session_data,
-                'proxy' => $account->proxy ? [
-                    'host' => $account->proxy->host,
-                    'port' => $account->proxy->port,
-                    'username' => $account->proxy->username,
-                    'password' => $account->proxy->password,
-                ] : null,
+                'proxy' => $account->proxy,
             ],
         ];
 
         try {
-            Http::timeout(120)->post(
-                'http://127.0.0.1:3000/execute-task',
-                $payload
-            );
-
-            $task->update(['executed_at' => now()]);
+            Http::timeout(120)->post('http://127.0.0.1:3000/execute-task', $payload);
         } catch (\Exception $e) {
-            Log::error("Failed to execute task {$task->id}: " . $e->getMessage());
+            $task->markAsFailed($e->getMessage());
         }
     }
 
-    // 🔥 NEW: Stop Scroll Bot
+    public function executeTaskFromScheduler(Task $task)
+    {
+        $this->executeTask($task);
+    }
+
+    // Stop Scroll Bot
     public function stopScroll(Request $request)
     {
         $accountId = $request->input('account_id');
@@ -152,15 +203,13 @@ class TaskController extends Controller
         }
 
         try {
-            // Call Node.js API to stop the scroll bot
             $response = Http::timeout(30)->post('http://127.0.0.1:3000/stop-scroll', [
                 'account_id' => $accountId
             ]);
 
             $result = $response->json();
 
-            if ($result['success']) {
-                // Update task status to 'completed'
+            if ($result['success'] ?? false) {
                 Task::where('account_id', $accountId)
                     ->whereIn('task_type', ['scroll'])
                     ->where('status', 'running')
@@ -186,7 +235,7 @@ class TaskController extends Controller
         }
     }
 
-    // 🔥 NEW: Get Scroll Bot Status
+    // Get Scroll Bot Status
     public function scrollStatus(Request $request)
     {
         $accountId = $request->input('account_id');
@@ -199,7 +248,6 @@ class TaskController extends Controller
         }
 
         try {
-            // Call Node.js API to get scroll bot status
             $response = Http::timeout(10)->post('http://127.0.0.1:3000/scroll-status', [
                 'account_id' => $accountId
             ]);
@@ -224,26 +272,38 @@ class TaskController extends Controller
 
     public function getTaskData()
     {
-        $task = Task::where('user_id', Auth::id())->get();
-        return DataTables::of($task)->make(true);
+        $tasks = Task::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return DataTables::of($tasks)->make(true);
     }
 
     public function deleteTask($id)
     {
         $task = Task::find($id);
         if (!$task) {
-            return redirect()->route('task')->with('error', 'task not found');
+            return response()->json(['success' => false, 'message' => 'Task not found']);
         }
+        
+        if ($task->media_urls && File::exists(public_path($task->media_urls))) {
+            File::delete(public_path($task->media_urls));
+        }
+        
         $task->delete();
-        return response()->json(['success' => true, 'message' => 'task deleted successfully']);
+        return response()->json(['success' => true, 'message' => 'Task deleted successfully']);
     }
 
     public function fetchTaskData($id)
     {
         $task = Task::find($id);
         if (!$task) {
-            return response()->json(['success' => false, 'message' => 'task not found']);
+            return response()->json(['success' => false, 'message' => 'Task not found']);
         }
+        
+        if ($task->media_urls) {
+            $task->media_urls_full = asset($task->media_urls);
+        }
+        
         return response()->json(['success' => true, 'data' => $task]);
     }
 }

@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class Task extends Model
 {
-    protected $table = 'tasks';
+    use HasFactory;
 
     protected $fillable = [
         'current_date',
@@ -26,95 +28,13 @@ class Task extends Model
 
     protected $casts = [
         'scheduled_at' => 'datetime',
-        'executed_at' => 'datetime',
-        'hashtags' => 'array',
+        'executed_at'  => 'datetime',
+        'created_at'   => 'datetime',
+        'updated_at'   => 'datetime',
+        'hashtags'     => 'array',
     ];
 
-    // Relationships
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function socialAccount()
-    {
-        return $this->belongsTo(SocialAccounts::class, 'account_id');
-    }
-
-    // Scopes
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
-    public function scopeQueued($query)
-    {
-        return $query->where('status', 'queued');
-    }
-
-    public function scopeRunning($query)
-    {
-        return $query->where('status', 'running');
-    }
-
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', 'completed');
-    }
-
-    public function scopeFailed($query)
-    {
-        return $query->where('status', 'failed');
-    }
-
-    public function scopeByUser($query, $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
-
-    public function scopeDueForExecution($query)
-    {
-        return $query->where('status', 'pending')
-            ->whereNotNull('executed_at')
-            ->where('executed_at', '<=', now())
-            ->orderBy('executed_at', 'asc');
-    }
-
-    // Helper Methods
-    public function isPending()
-    {
-        return $this->status === 'pending';
-    }
-
-    public function isQueued()
-    {
-        return $this->status === 'queued';
-    }
-
-    public function isRunning()
-    {
-        return $this->status === 'running';
-    }
-
-    public function isCompleted()
-    {
-        return $this->status === 'completed';
-    }
-
-    public function isFailed()
-    {
-        return $this->status === 'failed';
-    }
-
-    public function markAsPending()
-    {
-        $this->update(['status' => 'pending', 'error_message' => null]);
-    }
-
-    public function markAsQueued()
-    {
-        $this->update(['status' => 'queued']);
-    }
+    /* ---------------- Status Helpers ---------------- */
 
     public function markAsRunning()
     {
@@ -129,11 +49,28 @@ class Task extends Model
         ]);
     }
 
-    public function markAsFailed($errorMessage = null)
+    public function markAsFailed($error)
     {
         $this->update([
             'status' => 'failed',
-            'error_message' => $errorMessage
+            'error_message' => $error
         ]);
+    }
+
+    /* ---------------- Due Logic ---------------- */
+
+    public function isDue(): bool
+    {
+        return $this->status === 'pending'
+            && $this->executed_at
+            && $this->executed_at->lte(now());
+    }
+
+    public function scopeDueTasks($query)
+    {
+        return $query
+            ->where('status', 'pending')
+            ->whereNotNull('executed_at')
+            ->where('executed_at', '<=', now());
     }
 }

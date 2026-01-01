@@ -18,7 +18,7 @@ class SocialAccountsController extends Controller
     public function index()
     {
         $data['proxy'] = Proxy::where('is_active', 1)->get();
-         $data['accounts'] = SocialAccounts::all();
+        $data['accounts'] = SocialAccounts::all();
         $data['modules'] = ['setup/add-social-account.js'];
         return view('social-account/social-account', $data);
     }
@@ -175,57 +175,28 @@ class SocialAccountsController extends Controller
 
         return view('social-account/social-account-run', compact('account', 'url', 'cookies'));
     }
-
-    // public function startAccount($id)
-    // {
-    //     $account = SocialAccounts::with('proxy')->findOrFail($id);
-    //     $account->status = 'inprogress';
-    //     $account->save();
-
-    //     $proxy = $account->proxy;
-
-    //     $response = Http::timeout(120)->post('http://localhost:3000/login-social', [
-    //         'username' => $account->account_username,
-    //         'password' => $account->account_password,
-    //         'platform' => $account->platform,
-    //         'account_id' => $account->id,
-    //         'proxy_host' => $proxy->proxy_host ?? null,
-    //         'proxy_port' => $proxy->proxy_port ?? null,
-    //         'proxy_username' => $proxy->proxy_username ?? null,
-    //         'proxy_password' => $proxy->proxy_password ?? null,
-    //     ]);
-
-    //     $result = $response->json();
-
-    //     if (isset($result['success']) && $result['success']) {
-    //         // Save cookies, auth token, and session data
-    //         $account->cookies = $result['cookies'] ?? null;
-    //         $account->auth_token = $result['authToken'] ?? null;
-    //         $account->session_data = $result['sessionData'] ?? null;
-    //         $account->last_login = now();
-    //         $account->status = 'active';
-    //         $account->save();
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Login successful and session saved'
-    //         ]);
-    //     } else {
-    //         $account->status = 'failed';
-    //         $account->save();
-
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $result['error'] ?? 'Login failed'
-    //         ]);
-    //     }
-    // }
-
-      public function startAccount($id)
+    public function startAccount($id)
     {
-        $account = SocialAccounts::findOrFail($id);
+        $account = SocialAccounts::with('proxy')->findOrFail($id);
         $account->status = 'inprogress';
         $account->save();
+
+        $proxy = $account->proxy;
+
+        // Parse proxy credentials
+        $proxyHost = $proxy->proxy_host ?? null;
+        $proxyPort = $proxy->proxy_port ?? null;
+        $proxyUsername = $proxy->proxy_username ?? null;
+        $proxyPassword = $proxy->proxy_password ?? null;
+
+        // If proxy_username contains the full proxy string (like: username__cr.vn;state:password)
+        if ($proxyUsername && strpos($proxyUsername, '__cr.') !== false) {
+            $parts = explode(':', $proxyUsername);
+            if (count($parts) >= 2) {
+                $proxyUsername = $parts[0];
+                $proxyPassword = $parts[1] ?? $proxyPassword;
+            }
+        }
 
         // Prepare request data
         $requestData = [
@@ -233,6 +204,11 @@ class SocialAccountsController extends Controller
             'password' => $account->account_password,
             'platform' => $account->platform,
             'account_id' => $account->id,
+            'proxy_host' => $proxyHost,
+            'proxy_port' => $proxyPort,
+            'proxy_username' => $proxyUsername,
+            'proxy_password' => $proxyPassword,
+            'headless' => false, // Set to false to see the browser window
         ];
 
         // Add Twitter-specific fields
@@ -249,9 +225,8 @@ class SocialAccountsController extends Controller
         }
 
         try {
-            $response = Http::timeout(1)->post('http://localhost:3000/login-social', $requestData);
+            $response = Http::timeout(120)->post('http://localhost:3000/login-social', $requestData);
 
-            
             if (!$response->successful()) {
                 throw new \Exception('Node.js server returned error: ' . $response->status());
             }
@@ -267,8 +242,8 @@ class SocialAccountsController extends Controller
 
                 // Only update if data exists and is not empty
                 if (isset($result['cookies']) && !empty($result['cookies'])) {
-                    $updateData['cookies'] = is_array($result['cookies']) 
-                        ? json_encode($result['cookies']) 
+                    $updateData['cookies'] = is_array($result['cookies'])
+                        ? json_encode($result['cookies'])
                         : $result['cookies'];
                 }
 
@@ -277,14 +252,17 @@ class SocialAccountsController extends Controller
                 }
 
                 if (isset($result['sessionData']) && !empty($result['sessionData'])) {
-                    $updateData['session_data'] = is_array($result['sessionData']) 
-                        ? json_encode($result['sessionData']) 
+                    $updateData['session_data'] = is_array($result['sessionData'])
+                        ? json_encode($result['sessionData'])
                         : $result['sessionData'];
                 }
 
                 // Log what we're about to save
-                Log::info("Saving TikTok session data", [
+                Log::info("Saving session data with proxy", [
                     'account_id' => $account->id,
+                    'platform' => $account->platform,
+                    'proxy_used' => $proxyHost ? 'Yes' : 'No',
+                    'proxy_host' => $proxyHost,
                     'cookies_length' => isset($updateData['cookies']) ? strlen($updateData['cookies']) : 0,
                     'session_data_length' => isset($updateData['session_data']) ? strlen($updateData['session_data']) : 0,
                     'has_auth_token' => isset($updateData['auth_token'])
@@ -298,6 +276,7 @@ class SocialAccountsController extends Controller
                     'message' => 'Login successful and session saved',
                     'account_id' => $account->id,
                     'platform' => $account->platform,
+                    'proxy_used' => $proxyHost ? true : false,
                     'cookies_count' => isset($result['cookies']) ? count($result['cookies']) : 0
                 ]);
             } else {
@@ -306,15 +285,15 @@ class SocialAccountsController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => $result['message'] ?? 'Login failed',
-                    'error' => $result['error'] ?? 'Unknown error'
+                    'message' => $result['message'] ?? $result['error'] ?? 'Login failed',
+                    'error' => $result['error'] ?? null
                 ]);
             }
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             $account->status = 'failed';
             $account->save();
-            
+
             Log::error('Node.js Connection Error: ' . $e->getMessage());
 
             return response()->json([
@@ -325,7 +304,7 @@ class SocialAccountsController extends Controller
         } catch (\Exception $e) {
             $account->status = 'failed';
             $account->save();
-            
+
             Log::error('Social Account Start Error: ' . $e->getMessage(), [
                 'account_id' => $id,
                 'platform' => $account->platform,
@@ -341,22 +320,120 @@ class SocialAccountsController extends Controller
 
     public function checkAccountStatus($id)
     {
-        $account = SocialAccounts::findOrFail($id);
-        $isLoggedIn = false;
+        $account = SocialAccounts::with('proxy')->findOrFail($id);
+        $proxy = $account->proxy;
 
-        if ($account->cookies && $account->last_login) {
-            $hours = $account->last_login->diffInHours(now());
-            if ($hours < 24) {
-                $isLoggedIn = true;
+        $proxyHost = $proxy->proxy_host ?? null;
+        $proxyPort = $proxy->proxy_port ?? null;
+        $proxyUsername = $proxy->proxy_username ?? null;
+        $proxyPassword = $proxy->proxy_password ?? null;
+
+        // Parse proxy credentials if needed
+        if ($proxyUsername && strpos($proxyUsername, '__cr.') !== false) {
+            $parts = explode(':', $proxyUsername);
+            if (count($parts) >= 2) {
+                $proxyUsername = $parts[0];
+                $proxyPassword = $parts[1] ?? $proxyPassword;
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'is_logged_in' => $isLoggedIn,
-            'last_login' => $account->last_login,
-            'status' => $account->status
-        ]);
+        try {
+            $response = Http::timeout(60)->post('http://localhost:3000/check-login', [
+                'platform' => $account->platform,
+                'cookies' => $account->cookies ? json_decode($account->cookies, true) : null,
+                'sessionData' => $account->session_data,
+                'proxy_host' => $proxyHost,
+                'proxy_port' => $proxyPort,
+                'proxy_username' => $proxyUsername,
+                'proxy_password' => $proxyPassword,
+                'headless' => true,
+            ]);
+
+            $result = $response->json();
+
+            if (isset($result['isLoggedIn']) && $result['isLoggedIn']) {
+                $account->status = 'active';
+                $account->save();
+
+                return response()->json([
+                    'success' => true,
+                    'isLoggedIn' => true,
+                    'message' => 'Account is logged in'
+                ]);
+            } else {
+                $account->status = 'inactive';
+                $account->save();
+
+                return response()->json([
+                    'success' => true,
+                    'isLoggedIn' => false,
+                    'message' => 'Account is not logged in'
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Check Login Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error checking login status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function executeTask($id)
+    {
+        $account = SocialAccounts::with('proxy')->findOrFail($id);
+        $proxy = $account->proxy;
+
+        // Get the task (assuming you have a way to get the current task)
+        // This is just an example - adjust according to your task structure
+        $task = $account->currentTask; // or however you get the task
+
+        $proxyHost = $proxy->proxy_host ?? null;
+        $proxyPort = $proxy->proxy_port ?? null;
+        $proxyUsername = $proxy->proxy_username ?? null;
+        $proxyPassword = $proxy->proxy_password ?? null;
+
+        // Parse proxy credentials if needed
+        if ($proxyUsername && strpos($proxyUsername, '__cr.') !== false) {
+            $parts = explode(':', $proxyUsername);
+            if (count($parts) >= 2) {
+                $proxyUsername = $parts[0];
+                $proxyPassword = $parts[1] ?? $proxyPassword;
+            }
+        }
+
+        try {
+            $accountData = [
+                'id' => $account->id,
+                'platform' => $account->platform,
+                'session_data' => $account->session_data,
+                'account_email' => $account->account_email,
+                'account_username' => $account->account_username,
+                'account_password' => $account->account_password,
+                'proxy_host' => $proxyHost,
+                'proxy_port' => $proxyPort,
+                'proxy_username' => $proxyUsername,
+                'proxy_password' => $proxyPassword,
+            ];
+
+            $response = Http::timeout(120)->post('http://localhost:3000/execute-task', [
+                'task' => $task,
+                'account' => $accountData,
+                'headless' => false,
+            ]);
+
+            $result = $response->json();
+
+            return response()->json($result);
+
+        } catch (\Exception $e) {
+            Log::error('Execute Task Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error executing task: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function stopAccount($id)
